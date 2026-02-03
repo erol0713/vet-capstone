@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-3">{{ title }}</h2>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Name</label>
+                  {{ form.name }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Status</label>
+                  {{ form.status }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Owner</label>
+                  {{ form.owner }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Barangay</label>
+                  {{ form.barangay }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Capture Datetime</label>
+                  {{ form.capture_datetime }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Surrender Datetime</label>
+                  {{ form.surrender_datetime }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Sex</label>
+                  {{ form.sex }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Age Estimate</label>
+                  {{ form.age_estimate }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Color</label>
+                  {{ form.color }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Photo</label>
+                  {{ form.photo }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Notes</label>
+                  {{ form.notes }}
+                </div>
+              </div>
+              <div class="mt-4 d-flex gap-2 flex-wrap">
+                <button class="btn btn-primary" type="submit">Save</button>
+                <a class="btn btn-outline-secondary" href="{% url 'dogs_manage_list' %}">Cancel</a>
+                {% if dog %}
+                  <form method="post" action="{% url 'dogs_delete_staff' dog.pk %}">
+                    {% csrf_token %}
+                    <button
+                      class="btn btn-outline-danger"
+                      type="submit"
+                      onclick="return confirm('Delete this dog record?');"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

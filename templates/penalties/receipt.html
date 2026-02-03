@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Citation Ticket{% endblock %}
+
+{% block content %}
+  <style>
+    .receipt-wrap {
+      max-width: 900px;
+    }
+    .receipt-brand {
+      color: #d39d00;
+      font-weight: 700;
+      font-size: 2.4rem;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .receipt-subtitle {
+      font-size: 0.9rem;
+    }
+    .receipt-title {
+      letter-spacing: 0.08em;
+    }
+    .receipt-rule {
+      height: 2px;
+      background: #111;
+      width: 100%;
+    }
+    .receipt-signature {
+      min-width: 240px;
+    }
+    @media print {
+      body {
+        background: #fff !important;
+      }
+      nav,
+      .no-print {
+        display: none !important;
+      }
+      main {
+        padding: 0 !important;
+      }
+      .card,
+      .shadow-sm {
+        box-shadow: none !important;
+      }
+      .receipt-wrap {
+        max-width: 100% !important;
+      }
+    }
+  </style>
+
+  <div class="container receipt-wrap">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+      <div>
+        <div class="receipt-brand">Bayawan</div>
+        <div class="receipt-subtitle text-muted">Celebrate Life's Harvest</div>
+      </div>
+      <div class="text-end">
+        <div class="fw-semibold">CITY VETERINARY OFFICE</div>
+        <div class="text-muted small">National Highway, Barangay Villareal, Bayawan City</div>
+        <div class="text-muted small">Negros Oriental, 6221 Philippines</div>
+      </div>
+    </div>
+
+    <div class="text-center mb-3">
+      <h1 class="h3 fw-bold receipt-title mb-1">CITATION TICKET</h1>
+      <p class="mb-0">
+        City Ordinance No. 8 entitled, "Bayawan City Dog Domestication Ordinance of 2022"
+        hereby charges you the following fines and penalties:
+      </p>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="text-muted small">Owner</div>
+            <div class="fw-semibold">{{ owner_name }}</div>
+            <div class="small">{{ case.owner.email }}</div>
+            {% if owner_profile and owner_profile.address %}
+              <div class="small">{{ owner_profile.address }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-3">
+            <div class="text-muted small">Case</div>
+            <div class="fw-semibold">#{{ case.id }}</div>
+            <div class="text-muted small mt-2">Issued</div>
+            <div class="fw-semibold">{{ issued_at|date:"M d, Y" }}</div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-muted small">Dog</div>
+            <div class="fw-semibold">{{ case.dog.name|default:"Dog" }}</div>
+            <div class="text-muted small mt-2">Status</div>
+            <div class="fw-semibold">{{ case.dog.get_status_display }}</div>
+            {% if case.dog.barangay %}
+              <div class="text-muted small mt-2">Barangay</div>
+              <div class="fw-semibold">{{ case.dog.barangay }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold">Violations and Fees</div>
+          <div class="text-muted small">Items: {{ line_items|length }}</div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Description</th>
+                <th class="text-end">Qty</th>
+                <th class="text-end">Unit</th>
+                <th class="text-end">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for line in line_items %}
+                <tr>
+                  <td>{{ line.description }}</td>
+                  <td class="text-end">{{ line.quantity }}</td>
+                  <td class="text-end">&#8369;{{ line.unit_amount|floatformat:2 }}</td>
+                  <td class="text-end">&#8369;{{ line.total|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted">No violations recorded.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3" class="text-end">Total Payable</th>
+                <th class="text-end">&#8369;{{ case.total_amount|floatformat:2 }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+      <div class="text-muted">By authority of the Office of the Veterinarian</div>
+      <div class="receipt-signature text-center">
+        <div class="receipt-rule mb-2"></div>
+        <div class="fw-semibold">REYNALDO L. SOLAMILLO</div>
+        <div class="small">Team Leader, Rabies/Dog Control</div>
+        <div class="small mt-1">Date: {{ issued_at|date:"M d, Y" }}</div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 no-print">
+      <a class="btn btn-outline-secondary" href="{% url 'penalties_checklist' %}?case={{ case.id }}">
+        Back to Checklist
+      </a>
+      <button class="btn btn-primary" type="button" onclick="window.print()">Print Ticket</button>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Face Verification{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-3">Face Verification (Live)</h2>
+            <p class="text-muted">
+              Allow camera access, then complete the liveness steps (blink + head turn).
+            </p>
+
+            <div class="ratio ratio-4x3 mb-3">
+              <video id="video" autoplay muted playsinline></video>
+            </div>
+            <canvas id="captureCanvas" class="d-none"></canvas>
+            <div class="mb-3">
+              <img id="snapshotPreview" class="img-fluid rounded d-none" alt="Snapshot preview">
+            </div>
+
+            <div class="mb-3">
+              <div class="small text-muted">Step</div>
+              <div id="livenessStep" class="fw-semibold">Initializing…</div>
+            </div>
+            <div id="livenessDebug" class="small text-muted mt-1"></div>
+
+            <form method="post" id="verifyForm">
+              {% csrf_token %}
+              <div class="form-check mb-3">
+                {{ form.confirm }}
+                <label class="form-check-label">{{ form.confirm.label }}</label>
+              </div>
+              <input type="hidden" name="liveness_passed" id="livenessPassed" value="0">
+              <input type="hidden" name="snapshot" id="snapshotInput" value="">
+              <button class="btn btn-primary w-100" type="submit" id="submitBtn" disabled>
+                Submit
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script src="{% static 'js/face_liveness.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,86 @@
+:root {
+  --brand-ink: #0b2b26;
+  --brand-accent: #0ea5a4;
+  --brand-soft: #e7f6f4;
+}
+
+body {
+  font-family: "Source Sans 3", "Segoe UI", sans-serif;
+  color: var(--brand-ink);
+}
+
+.navbar-brand {
+  letter-spacing: 0.2px;
+}
+
+.hero {
+  padding: 2.5rem 0;
+  background: radial-gradient(circle at top, var(--brand-soft), transparent 60%);
+}
+
+.hero .eyebrow {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: #4b6e6a;
+  margin-bottom: 0.5rem;
+}
+
+.hero-card {
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(13, 64, 58, 0.12);
+}
+
+.section-strip {
+  padding: 2rem 0;
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  height: 100%;
+  border: 1px solid #e5f1ef;
+  box-shadow: 0 8px 20px rgba(13, 64, 58, 0.08);
+}
+
+.info-card i {
+  font-size: 1.5rem;
+  color: var(--brand-accent);
+}
+
+.info-card h6 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.penalty-summary {
+  top: 1.5rem;
+}
+
+.navbar .badge {
+  font-size: 0.65rem;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #0ea5a4;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+video#video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  background: #0b2b26;
+}

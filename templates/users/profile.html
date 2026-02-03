@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-3">Account Information</h2>
+            <div class="mb-2"><strong>Email:</strong> {{ request.user.email }}</div>
+            <div class="mb-2"><strong>Username:</strong> {{ request.user.username }}</div>
+            <div class="mb-2"><strong>Role:</strong> {{ request.user.get_role_display }}</div>
+            <div class="mb-2"><strong>Joined:</strong> {{ request.user.date_joined|date:"M d, Y" }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% if request.user.role == 'OWNER' %}
+        <div class="col-lg-6">
+          <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+              <h2 class="h5 mb-3">Verification Status</h2>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Email Verification
+                  {% if request.user.email_verified %}
+                    <span class="badge bg-success">Verified</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Face Verification
+                  {% if request.user.face_verification and request.user.face_verification.status == 'APPROVED' %}
+                    <span class="badge bg-success">Approved</span>
+                  {% elif request.user.face_verification and request.user.face_verification.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">Under Review</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Not Submitted</span>
+                  {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  Account Verified
+                  {% if request.user.is_verified %}
+                    <span class="badge bg-success">Verified</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Pending</span>
+                  {% endif %}
+                </li>
+              </ul>
+              <div class="mt-3">
+                <a class="btn btn-outline-primary" href="{% url 'verification_status' %}">
+                  Manage Verification
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h6 mb-3">Profile Information</h2>
+            <form method="post">
+              {% csrf_token %}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Full Name</label>
+                  {{ form.full_name }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Age</label>
+                  {{ form.age }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Birthday</label>
+                  {{ form.birthday }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address</label>
+                  {{ form.address }}
+                </div>
+              </div>
+              <button class="btn btn-primary mt-3" type="submit">Save Profile</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {% if request.user.role == 'OWNER' %}
+        <div class="col-12">
+          <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 mb-0">My Registered Dogs</h2>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'dogs_register' %}">
+                  Add Dog
+                </a>
+              </div>
+              <div class="row g-3">
+                {% for dog in registered_dogs %}
+                  <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                      {% if dog.photo %}
+                        <img class="card-img-top" src="{{ dog.photo.url }}" alt="Dog photo">
+                      {% endif %}
+                      <div class="card-body">
+                        <h3 class="h6 mb-1">
+                          {% if dog.name %}
+                            {{ dog.name }}
+                          {% else %}
+                            {{ dog.color|default:"Unnamed Dog" }}
+                          {% endif %}
+                        </h3>
+                        <p class="small text-muted mb-1">Sex: {{ dog.sex|default:"-" }}</p>
+                        <p class="small text-muted mb-1">Age: {{ dog.age_estimate|default:"-" }}</p>
+                        <p class="small text-muted mb-0">Barangay: {{ dog.barangay|default:"-" }}</p>
+                        {% if not dog.capture_datetime and not dog.surrender_datetime %}
+                          <form class="mt-2" method="post" action="{% url 'dogs_delete' dog.pk %}">
+                            {% csrf_token %}
+                            <button
+                              class="btn btn-sm btn-outline-danger"
+                              type="submit"
+                              onclick="return confirm('Delete this registered dog?');"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% empty %}
+                  <div class="col-12 text-muted">No registered dogs yet.</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if request.user.role == 'OWNER' %}
+        <div class="col-12">
+          <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+              <h2 class="h6 mb-3">Compliance & Status</h2>
+              <div class="d-flex flex-wrap gap-3">
+                <div>
+                  <div class="text-muted small">Offense Count</div>
+                  <div class="fw-semibold">{{ request.user.profile.offense_count }}</div>
+                </div>
+                <div>
+                  <div class="text-muted small">Status Badge</div>
+                  {% if request.user.profile.status_badge == 'GREEN' %}
+                    <span class="badge bg-success">Green</span>
+                  {% elif request.user.profile.status_badge == 'ORANGE' %}
+                    <span class="badge bg-warning text-dark">Orange</span>
+                  {% else %}
+                    <span class="badge bg-danger">Red</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const birthday = document.getElementById('id_birthday');
+      const age = document.getElementById('id_age');
+      if (!birthday || !age) return;
+
+      const computeAge = () => {
+        if (!birthday.value) {
+          age.value = '';
+          return;
+        }
+        const birthDate = new Date(birthday.value);
+        const today = new Date();
+        let years = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          years -= 1;
+        }
+        age.value = Math.max(years, 0);
+      };
+
+      birthday.addEventListener('change', computeAge);
+      birthday.addEventListener('input', computeAge);
+      computeAge();
+    });
+  </script>
+{% endblock %}

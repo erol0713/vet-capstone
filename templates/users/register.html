@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h4 mb-3">Create an account</h2>
+            <form method="post">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="mb-3">
+                <label class="form-label">Username</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                {{ form.password1 }}
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                {{ form.password2 }}
+                {{ form.password2.errors }}
+              </div>
+              <div class="form-check mb-3">
+                {{ form.legal_consent }}
+                <label class="form-check-label">
+                  I agree to the legal consent and data use policy.
+                </label>
+                {{ form.legal_consent.errors }}
+              </div>
+              <button class="btn btn-primary w-100" type="submit">Register</button>
+            </form>
+            <p class="small text-muted mt-3 mb-0">
+              Already have an account? <a href="{% url 'login' %}">Login</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Dog{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-3">Register Your Dog</h2>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Name (optional)</label>
+                  {{ form.name }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Sex</label>
+                  {{ form.sex }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Age Estimate</label>
+                  {{ form.age_estimate }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Color</label>
+                  {{ form.color }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Barangay</label>
+                  {{ form.barangay }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Photo</label>
+                  {{ form.photo }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Notes</label>
+                  {{ form.notes }}
+                </div>
+              </div>
+              <button class="btn btn-primary mt-3" type="submit">Submit</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}User Verification Queue{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Verification Queue</h2>
+        <p class="text-muted mb-0">Review and approve user face verification.</p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email Verified</th>
+              <th>Status</th>
+              <th>Photo</th>
+              <th>Submitted</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in pending %}
+              <tr>
+                <td>{{ item.user.username }}</td>
+                <td>
+                  {% if item.user.email_verified %}
+                    <span class="badge bg-success">Yes</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">No</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.get_status_display }}</td>
+                <td>
+                  {% if item.photo %}
+                    <a href="{{ item.photo.url }}" target="_blank" rel="noopener">
+                      <img src="{{ item.photo.url }}" alt="Face" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
+                    </a>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>{{ item.created_at|date:"M d, Y" }}</td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'verification_detail' item.id %}">
+                    View
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-3">No verification requests.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

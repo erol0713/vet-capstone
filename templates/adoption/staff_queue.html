@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Adoption Queue{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h2 class="h4 mb-3">Adoption & Reclaim Queue</h2>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h3 class="h6 mb-3">Adoption Reservations</h3>
+            <ul class="list-group list-group-flush">
+              {% for item in adoptions %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>
+                        {% if item.dog.name %}
+                          {{ item.dog.name }}
+                        {% else %}
+                          Dog #{{ item.dog_id }}
+                        {% endif %}
+                      </strong>
+                      <div class="small text-muted">{{ item.requester.email }}</div>
+                    </div>
+                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                  </div>
+                  <div class="mt-2 d-flex gap-2 flex-wrap">
+                    <a class="btn btn-sm btn-outline-success" href="{% url 'adoption_update_status' item.pk 'APPROVED' %}">
+                      Approve
+                    </a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'adoption_update_status' item.pk 'COMPLETED' %}">
+                      Complete
+                    </a>
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'adoption_update_status' item.pk 'REJECTED' %}">
+                      Reject
+                    </a>
+                  </div>
+                </li>
+              {% empty %}
+                <li class="list-group-item text-muted">No adoption requests.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h3 class="h6 mb-3">Reclaim Requests</h3>
+            <ul class="list-group list-group-flush">
+              {% for item in reclaims %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>
+                        {% if item.dog.name %}
+                          {{ item.dog.name }}
+                        {% else %}
+                          Dog #{{ item.dog_id }}
+                        {% endif %}
+                      </strong>
+                      <div class="small text-muted">{{ item.owner.email }}</div>
+                    </div>
+                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                  </div>
+                  <div class="mt-2 d-flex gap-2 flex-wrap">
+                    <a class="btn btn-sm btn-outline-success" href="{% url 'reclaim_update_status' item.pk 'APPROVED' %}">
+                      Approve
+                    </a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'reclaim_update_status' item.pk 'COMPLETED' %}">
+                      Complete
+                    </a>
+                    {% if item.penalty_case %}
+                      <a
+                        class="btn btn-sm btn-outline-primary"
+                        href="{% url 'penalties_checklist' %}?case={{ item.penalty_case.id }}"
+                      >
+                        Penalty
+                      </a>
+                    {% endif %}
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'reclaim_update_status' item.pk 'REJECTED' %}">
+                      Reject
+                    </a>
+                  </div>
+                </li>
+              {% empty %}
+                <li class="list-group-item text-muted">No reclaim requests.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

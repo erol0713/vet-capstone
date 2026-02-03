@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Notifications</h2>
+        <p class="text-muted mb-0">All updates for your account.</p>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'notifications_read_all' %}">
+        Mark all read
+      </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="list-group list-group-flush">
+        {% for item in items %}
+          <div class="list-group-item d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">{{ item.title }}</div>
+              <div class="text-muted small">{{ item.message }}</div>
+              <div class="small text-muted mt-1">{{ item.created_at|date:"M d, Y H:i" }}</div>
+            </div>
+            <div>
+              {% if not item.is_read %}
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'notifications_read' item.pk %}">
+                  Mark read
+                </a>
+              {% else %}
+                <span class="badge bg-light text-muted">Read</span>
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="list-group-item text-muted">No notifications yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

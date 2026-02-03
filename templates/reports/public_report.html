@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Report a Stray{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-2">Report a Stray</h2>
+            <p class="text-muted">Submit details so staff can respond quickly.</p>
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Report Type</label>
+                  {{ form.report_type }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Location</label>
+                  {{ form.location }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description</label>
+                  {{ form.description }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Contact Name</label>
+                  {{ form.contact_name }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Contact Phone</label>
+                  {{ form.contact_phone }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Photo</label>
+                  {{ form.photo }}
+                </div>
+              </div>
+              <button class="btn btn-primary mt-3" type="submit">Submit Report</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

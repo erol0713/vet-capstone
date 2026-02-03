@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}My Requests{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h2 class="h4 mb-3">My Requests</h2>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h3 class="h6 mb-3">Adoption Reservations</h3>
+            <ul class="list-group list-group-flush">
+              {% for item in adoptions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                    {% if item.dog.name %}
+                      {{ item.dog.name }}
+                    {% else %}
+                      Dog #{{ item.dog_id }}
+                    {% endif %}
+                  </span>
+                  <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                </li>
+              {% empty %}
+                <li class="list-group-item text-muted">No adoption requests yet.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h3 class="h6 mb-3">Reclaim Requests</h3>
+            <ul class="list-group list-group-flush">
+              {% for item in reclaims %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                    {% if item.dog.name %}
+                      {{ item.dog.name }}
+                    {% else %}
+                      Dog #{{ item.dog_id }}
+                    {% endif %}
+                  </span>
+                  <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                </li>
+              {% empty %}
+                <li class="list-group-item text-muted">No reclaim requests yet.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

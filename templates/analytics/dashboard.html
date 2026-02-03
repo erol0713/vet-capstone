@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Analytics Dashboard</h2>
+        <p class="text-muted mb-0">Placeholder charts for reporting modules.</p>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <div class="small text-muted">Captures This Month</div>
+            <div class="h5 mb-0">{{ captures_month }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <div class="small text-muted">Adoptions This Month</div>
+            <div class="h5 mb-0">{{ adoptions_month }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <div class="small text-muted">Reclaims This Month</div>
+            <div class="h5 mb-0">{{ reclaims_month }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <div class="small text-muted">Reports This Month</div>
+            <div class="h5 mb-0">{{ reports_month }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h3 class="h6">Monthly Captures</h3>
+            <canvas id="chartCaptures" height="140"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h3 class="h6">Adoption vs Reclaim</h3>
+            <canvas id="chartAdoption" height="140"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h3 class="h6">Barangay Hotspots (Top 5)</h3>
+            <ul class="list-group list-group-flush">
+              {% for item in barangay_counts %}
+                <li class="list-group-item d-flex justify-content-between">
+                  <span>{{ item.barangay }}</span>
+                  <span class="text-muted">{{ item.count }}</span>
+                </li>
+              {% empty %}
+                <li class="list-group-item text-muted">No data yet.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <h3 class="h6">Total Revenue</h3>
+            <div class="display-6">₱{{ revenue_total }}</div>
+            <div class="small text-muted mt-2">Vaccinations recorded: {{ vaccinations_total }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="{% static 'js/analytics.js' %}"></script>
+{% endblock %}
