@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Registered Dogs{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Registered Dogs by Owner</h2>
+        <p class="text-muted mb-0">Admin/Staff view of user-registered dogs.</p>
+      </div>
+      <a class="btn btn-outline-secondary" href="{% url 'dogs_manage_list' %}">Back to Intake</a>
+    </div>
+
+    {% if grouped %}
+      {% for owner, dogs in grouped.items %}
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h3 class="h6 mb-1">{{ owner.username }}</h3>
+                <div class="text-muted small">{{ owner.email }}</div>
+              </div>
+              <span class="badge bg-secondary">{{ dogs|length }} dog{{ dogs|length|pluralize }}</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table mb-0">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Sex</th>
+                    <th>Age</th>
+                    <th>Color</th>
+                    <th>Barangay</th>
+                    <th>Vaccination</th>
+                    <th>Proof</th>
+                    <th>Photo</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for dog in dogs %}
+                    <tr>
+                      <td>{{ dog.id }}</td>
+                      <td>{{ dog.name|default:"Unnamed" }}</td>
+                      <td>{{ dog.sex|default:"-" }}</td>
+                      <td>{{ dog.age_estimate|default:"-" }}</td>
+                      <td>{{ dog.color|default:"-" }}</td>
+                      <td>{{ dog.barangay|default:"-" }}</td>
+                      <td>
+                        {% if dog.vaccination_status %}
+                          {{ dog.get_vaccination_status_display }}
+                          {% if dog.vaccination_status == 'UNVACCINATED' and dog.vaccination_request %}
+                            <span class="badge bg-warning text-dark">Requested</span>
+                          {% endif %}
+                          {% if dog.vaccination_schedule %}
+                            <div class="small text-muted">
+                              {{ dog.vaccination_schedule|date:"M d, Y H:i" }}
+                            </div>
+                          {% endif %}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if dog.vaccination_proof %}
+                          <a href="{{ dog.vaccination_proof.url }}" target="_blank" rel="noopener">View</a>
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if dog.photo %}
+                          <a href="{{ dog.photo.url }}" target="_blank" rel="noopener">View</a>
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'dogs_edit' dog.pk %}">
+                          Edit
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 text-center text-muted">No registered dogs found.</div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

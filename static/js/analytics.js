@@ -1,4 +1,4 @@
-const baseChartOptions = {
+﻿const baseChartOptions = {
   responsive: true,
   plugins: {
     legend: {

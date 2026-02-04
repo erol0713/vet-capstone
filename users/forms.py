@@ -86,7 +86,7 @@ class FaceVerificationSubmitForm(forms.Form):
 class ProfileInfoForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ('full_name', 'address', 'age', 'birthday')
+        fields = ('full_name', 'gender', 'address', 'age', 'birthday', 'profile_photo')
         widgets = {
             'birthday': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -94,8 +94,12 @@ class ProfileInfoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.setdefault('class', 'form-control')
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs.setdefault('class', 'form-select')
+            else:
+                field.widget.attrs.setdefault('class', 'form-control')
         self.fields['age'].widget.attrs.setdefault('readonly', 'readonly')
+        self.fields['profile_photo'].widget.attrs.setdefault('accept', 'image/*')
 
     def clean(self):
         cleaned = super().clean()

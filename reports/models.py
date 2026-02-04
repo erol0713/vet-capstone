@@ -8,6 +8,12 @@ class Report(TimeStampedModel):
     class ReportType(models.TextChoices):
         STRAY = 'STRAY', 'Stray'
         SURRENDER = 'SURRENDER', 'Surrender'
+        INCIDENT = 'INCIDENT', 'Incident'
+
+    class LocationMethod(models.TextChoices):
+        GOOGLE_MAPS = 'GOOGLE_MAPS', 'Google Maps'
+        MANUAL_ADDRESS = 'MANUAL_ADDRESS', 'Manual Address'
+        BOTH = 'BOTH', 'Google Maps + Manual Address'
 
     class Status(models.TextChoices):
         OPEN = 'OPEN', 'Open'
@@ -26,6 +32,15 @@ class Report(TimeStampedModel):
     contact_name = models.CharField(max_length=120, blank=True)
     contact_phone = models.CharField(max_length=40, blank=True)
     description = models.TextField(blank=True)
+    location_method = models.CharField(
+        max_length=20,
+        choices=LocationMethod.choices,
+        blank=True,
+    )
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    maps_url = models.URLField(max_length=500, blank=True)
+    address_json = models.JSONField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"Report {self.pk} - {self.get_report_type_display()}"

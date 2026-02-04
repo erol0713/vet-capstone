@@ -1,10 +1,14 @@
-from django.conf import settings
+﻿from django.conf import settings
 from django.db import models
 
 from core.models import TimeStampedModel
 
 
 class Dog(TimeStampedModel):
+    class VaccinationStatus(models.TextChoices):
+        VACCINATED = 'VACCINATED', 'Vaccinated'
+        UNVACCINATED = 'UNVACCINATED', 'Unvaccinated'
+
     class Status(models.TextChoices):
         IMPOUNDED = 'IMPOUNDED', 'Impounded'
         AVAILABLE = 'AVAILABLE', 'Available for Adoption'
@@ -31,6 +35,15 @@ class Dog(TimeStampedModel):
     kennel_slot = models.CharField(max_length=30, blank=True)
     photo = models.ImageField(upload_to='dogs/', blank=True)
     notes = models.TextField(blank=True)
+    vaccination_status = models.CharField(
+        max_length=20,
+        choices=VaccinationStatus.choices,
+        blank=True,
+        default='',
+    )
+    vaccination_proof = models.FileField(upload_to='vaccination_proofs/', blank=True)
+    vaccination_request = models.BooleanField(default=False)
+    vaccination_schedule = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"Dog #{self.pk} - {self.get_status_display()}"

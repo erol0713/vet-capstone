@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Vaccination{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-2">Schedule Vaccination</h2>
+            <p class="text-muted mb-3">
+              Set an appointment for {{ dog.name|default:"Unnamed Dog" }} (Owner: {{ dog.owner.username }}).
+            </p>
+            <form method="post" id="scheduleForm">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Select Date</label>
+                  <div class="calendar">
+                    <div class="calendar-header d-flex justify-content-between align-items-center mb-2">
+                      <button class="btn btn-sm btn-outline-secondary" type="button" id="calPrev">
+                        Prev
+                      </button>
+                      <div class="fw-semibold" id="calTitle"></div>
+                      <button class="btn btn-sm btn-outline-secondary" type="button" id="calNext">
+                        Next
+                      </button>
+                    </div>
+                    <div class="calendar-grid text-center small text-muted mb-2">
+                      <div>Sun</div>
+                      <div>Mon</div>
+                      <div>Tue</div>
+                      <div>Wed</div>
+                      <div>Thu</div>
+                      <div>Fri</div>
+                      <div>Sat</div>
+                    </div>
+                    <div class="calendar-grid" id="calGrid"></div>
+                  </div>
+                  <input type="hidden" name="appointment_date" id="appointmentDate">
+                  {% if form.appointment_date.errors %}
+                    <div class="text-danger small mt-1">{{ form.appointment_date.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Select Time</label>
+                  {{ form.appointment_time }}
+                  {% if form.appointment_time.errors %}
+                    <div class="text-danger small mt-1">{{ form.appointment_time.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-primary" type="submit">Set Schedule</button>
+                <a class="btn btn-outline-secondary" href="{% url 'dogs_registered_by_owner' %}">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .calendar {
+      border: 1px solid #e1ece7;
+      border-radius: 0.35rem;
+      padding: 0.75rem;
+      background: #ffffff;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.35rem;
+    }
+
+    .calendar-day {
+      border: 1px solid #e1ece7;
+      border-radius: 0.35rem;
+      padding: 0.5rem 0;
+      background: #f8fbf9;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .calendar-day.is-disabled {
+      color: #adb5bd;
+      background: #f4f6f5;
+      cursor: not-allowed;
+    }
+
+    .calendar-day.is-selected {
+      background: #0ea5a4;
+      color: #ffffff;
+      border-color: #0b6f66;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const calGrid = document.getElementById('calGrid');
+      const calTitle = document.getElementById('calTitle');
+      const appointmentInput = document.getElementById('appointmentDate');
+      const prevBtn = document.getElementById('calPrev');
+      const nextBtn = document.getElementById('calNext');
+
+      if (!calGrid || !calTitle || !appointmentInput) return;
+
+      const today = new Date();
+      let viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      let selected = null;
+
+      const formatDateValue = (date) => {
+        const y = date.getFullYear();
+        const m = `${date.getMonth() + 1}`.padStart(2, '0');
+        const d = `${date.getDate()}`.padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+
+      const renderCalendar = () => {
+        calGrid.innerHTML = '';
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
+        calTitle.textContent = viewDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+        const firstDay = new Date(year, month, 1);
+        const startDay = firstDay.getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < startDay; i += 1) {
+          const empty = document.createElement('div');
+          calGrid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day += 1) {
+          const date = new Date(year, month, day);
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = 'calendar-day';
+          cell.textContent = day;
+
+          const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          if (isPast) {
+            cell.classList.add('is-disabled');
+            cell.disabled = true;
+          }
+
+          if (selected && formatDateValue(date) === formatDateValue(selected)) {
+            cell.classList.add('is-selected');
+          }
+
+          cell.addEventListener('click', () => {
+            selected = date;
+            appointmentInput.value = formatDateValue(date);
+            renderCalendar();
+          });
+
+          calGrid.appendChild(cell);
+        }
+      };
+
+      prevBtn?.addEventListener('click', () => {
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+        renderCalendar();
+      });
+
+      nextBtn?.addEventListener('click', () => {
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+        renderCalendar();
+      });
+
+      renderCalendar();
+    });
+  </script>
+{% endblock %}

@@ -19,7 +19,9 @@
               <th>ID</th>
               <th>Type</th>
               <th>Status</th>
+              <th>Method</th>
               <th>Location</th>
+              <th>Description</th>
               <th>Reporter</th>
               <th>Submitted</th>
               <th></th>
@@ -31,7 +33,11 @@
                 <td>{{ item.id }}</td>
                 <td>{{ item.get_report_type_display }}</td>
                 <td>{{ item.get_status_display }}</td>
+                <td>{{ item.get_location_method_display|default:"-" }}</td>
                 <td>{{ item.location }}</td>
+                <td class="text-muted small">
+                  {{ item.description|default:"-"|truncatechars:60 }}
+                </td>
                 <td>
                   {% if item.contact_name %}
                     {{ item.contact_name }}
@@ -50,7 +56,7 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="7" class="text-center text-muted py-3">No reports yet.</td>
+                <td colspan="9" class="text-center text-muted py-3">No reports yet.</td>
               </tr>
             {% endfor %}
           </tbody>

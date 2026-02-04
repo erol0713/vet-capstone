@@ -14,6 +14,28 @@
             </div>
             <p class="mb-1"><strong>Type:</strong> {{ report.get_report_type_display }}</p>
             <p class="mb-1"><strong>Location:</strong> {{ report.location }}</p>
+            {% if report.maps_url %}
+              <p class="mb-1">
+                <strong>Maps URL:</strong>
+                <a href="{{ report.maps_url }}" target="_blank" rel="noopener">Open map</a>
+              </p>
+            {% endif %}
+            {% if report.latitude and report.longitude %}
+              <p class="mb-1">
+                <strong>Coordinates:</strong>
+                {{ report.latitude }}, {{ report.longitude }}
+              </p>
+            {% endif %}
+            {% if report.address_json %}
+              <p class="mb-1"><strong>Address:</strong></p>
+              <div class="small text-muted mb-2">
+                {% if report.address_json.street %}{{ report.address_json.street }}{% endif %}
+                {% if report.address_json.barangay %}, {{ report.address_json.barangay }}{% endif %}
+                {% if report.address_json.city %}, {{ report.address_json.city }}{% endif %}
+                {% if report.address_json.province %}, {{ report.address_json.province }}{% endif %}
+                {% if report.address_json.postal_code %}, {{ report.address_json.postal_code }}{% endif %}
+              </div>
+            {% endif %}
             <p class="mb-1"><strong>Description:</strong> {{ report.description|default:"-" }}</p>
             <p class="mb-1"><strong>Notes:</strong> {{ report.notes|default:"-" }}</p>
             <p class="mb-1"><strong>Submitted:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
@@ -33,7 +55,16 @@
             </div>
             {% if report.photo %}
               <div class="mt-3">
-                <img class="img-fluid rounded" src="{{ report.photo.url }}" alt="Report photo">
+                {% with filename=report.photo.name|lower %}
+                  {% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}
+                    <video class="img-fluid rounded" controls>
+                      <source src="{{ report.photo.url }}">
+                      Your browser does not support the video tag.
+                    </video>
+                  {% else %}
+                    <img class="img-fluid rounded" src="{{ report.photo.url }}" alt="Report photo">
+                  {% endif %}
+                {% endwith %}
               </div>
             {% endif %}
           </div>

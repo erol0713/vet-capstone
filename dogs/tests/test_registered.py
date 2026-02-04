@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
 from dogs.models import Dog
@@ -54,3 +55,76 @@ def test_other_user_cannot_delete_dog(client):
 
     assert response.status_code == 404
     assert Dog.objects.filter(id=dog.id).exists()
+
+
+def test_vaccinated_requires_proof(client):
+    owner = create_owner()
+    client.force_login(owner)
+
+    response = client.post(
+        '/dogs/register/',
+        {
+            'name': 'Buddy',
+            'vaccination_status': Dog.VaccinationStatus.VACCINATED,
+        },
+    )
+
+    assert response.status_code == 200
+    assert not Dog.objects.filter(name='Buddy').exists()
+
+
+def test_vaccinated_with_proof_succeeds(client):
+    owner = create_owner()
+    client.force_login(owner)
+    proof = SimpleUploadedFile('proof.pdf', b'proof', content_type='application/pdf')
+
+    response = client.post(
+        '/dogs/register/',
+        {
+            'name': 'Buddy',
+            'vaccination_status': Dog.VaccinationStatus.VACCINATED,
+            'vaccination_proof': proof,
+        },
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    dog = Dog.objects.get(name='Buddy')
+    assert dog.vaccination_status == Dog.VaccinationStatus.VACCINATED
+    assert dog.vaccination_proof.name
+
+
+def test_unvaccinated_requires_request(client):
+    owner = create_owner()
+    client.force_login(owner)
+
+    response = client.post(
+        '/dogs/register/',
+        {
+            'name': 'Lucky',
+            'vaccination_status': Dog.VaccinationStatus.UNVACCINATED,
+        },
+    )
+
+    assert response.status_code == 200
+    assert not Dog.objects.filter(name='Lucky').exists()
+
+
+def test_unvaccinated_with_request_succeeds(client):
+    owner = create_owner()
+    client.force_login(owner)
+
+    response = client.post(
+        '/dogs/register/',
+        {
+            'name': 'Max',
+            'vaccination_status': Dog.VaccinationStatus.UNVACCINATED,
+            'vaccination_request': 'on',
+        },
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    dog = Dog.objects.get(name='Max')
+    assert dog.vaccination_status == Dog.VaccinationStatus.UNVACCINATED
+    assert dog.vaccination_request is True

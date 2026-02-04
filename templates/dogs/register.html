@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Register Dog{% endblock %}
 
@@ -34,6 +34,21 @@
                   {{ form.barangay }}
                 </div>
                 <div class="col-md-6">
+                  <label class="form-label">Vaccination Status</label>
+                  {{ form.vaccination_status }}
+                </div>
+                <div class="col-md-6" id="vaccinationProofGroup">
+                  <label class="form-label">Vaccination Proof</label>
+                  {{ form.vaccination_proof }}
+                  <div class="form-text">Upload a photo or PDF proof.</div>
+                </div>
+                <div class="col-md-6" id="vaccinationRequestGroup">
+                  <div class="d-flex align-items-center gap-2 mt-4">
+                    {{ form.vaccination_request }}
+                    <label class="form-label mb-0">Request Vaccination Appointment</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
                   <label class="form-label">Photo</label>
                   {{ form.photo }}
                 </div>
@@ -49,4 +64,34 @@
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const statusField = document.getElementById('id_vaccination_status');
+      const proofGroup = document.getElementById('vaccinationProofGroup');
+      const requestGroup = document.getElementById('vaccinationRequestGroup');
+      const requestField = document.getElementById('id_vaccination_request');
+
+      if (!statusField) return;
+
+      const syncVaccinationFields = () => {
+        const status = statusField.value;
+        if (status === 'VACCINATED') {
+          proofGroup?.classList.remove('d-none');
+          requestGroup?.classList.add('d-none');
+          if (requestField) requestField.checked = false;
+        } else if (status === 'UNVACCINATED') {
+          proofGroup?.classList.add('d-none');
+          requestGroup?.classList.remove('d-none');
+        } else {
+          proofGroup?.classList.add('d-none');
+          requestGroup?.classList.add('d-none');
+          if (requestField) requestField.checked = false;
+        }
+      };
+
+      statusField.addEventListener('change', syncVaccinationFields);
+      syncVaccinationFields();
+    });
+  </script>
 {% endblock %}

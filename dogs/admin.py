@@ -1,10 +1,19 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 
 from .models import Dog
 
 
 @admin.register(Dog)
 class DogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'status', 'barangay', 'kennel_slot', 'owner')
-    list_filter = ('status', 'barangay')
-    search_fields = ('barangay', 'kennel_slot')
+    list_display = (
+        'id',
+        'status',
+        'vaccination_status',
+        'vaccination_request',
+        'vaccination_schedule',
+        'barangay',
+        'kennel_slot',
+        'owner',
+    )
+    list_filter = ('status', 'vaccination_status', 'vaccination_request', 'barangay')
+    search_fields = ('barangay', 'kennel_slot', 'owner__email', 'name')

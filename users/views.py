@@ -127,7 +127,7 @@ def profile(request):
         capture_datetime__isnull=True,
         surrender_datetime__isnull=True,
     )
-    form = ProfileInfoForm(request.POST or None, instance=profile_obj)
+    form = ProfileInfoForm(request.POST or None, request.FILES or None, instance=profile_obj)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Profile updated.')

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 
+from notifications.models import Notification
 from dogs.models import Dog
 
 
@@ -25,11 +26,49 @@ def test_staff_can_access_manage_list(client):
     assert response.status_code == 200
 
 
+def test_staff_can_access_registered_by_owner(client):
+    staff = create_user('STAFF')
+    client.force_login(staff)
+
+    response = client.get('/staff/dogs/registered/')
+
+    assert response.status_code == 200
+
+
+def test_staff_can_access_vaccination_requests(client):
+    staff = create_user('STAFF')
+    client.force_login(staff)
+
+    response = client.get('/staff/dogs/vaccinations/')
+
+    assert response.status_code == 200
+
+
 def test_owner_blocked_from_manage_list(client):
     owner = create_user('OWNER')
     client.force_login(owner)
 
     response = client.get('/staff/dogs/', follow=True)
+
+    assert response.status_code == 200
+    assert b'permission' in response.content.lower()
+
+
+def test_owner_blocked_from_registered_by_owner(client):
+    owner = create_user('OWNER')
+    client.force_login(owner)
+
+    response = client.get('/staff/dogs/registered/', follow=True)
+
+    assert response.status_code == 200
+    assert b'permission' in response.content.lower()
+
+
+def test_owner_blocked_from_vaccination_requests(client):
+    owner = create_user('OWNER')
+    client.force_login(owner)
+
+    response = client.get('/staff/dogs/vaccinations/', follow=True)
 
     assert response.status_code == 200
     assert b'permission' in response.content.lower()
@@ -168,3 +207,25 @@ def test_edit_registered_dog_keeps_status(client):
     dog.refresh_from_db()
     assert response.status_code == 200
     assert dog.status == Dog.Status.RELEASED
+
+
+def test_staff_setting_vaccination_schedule_notifies_owner(client):
+    staff = create_user('STAFF')
+    owner = create_user('OWNER')
+    dog = Dog.objects.create(
+        name='VaccDog',
+        status=Dog.Status.RELEASED,
+        owner=owner,
+        vaccination_status=Dog.VaccinationStatus.UNVACCINATED,
+        vaccination_request=True,
+    )
+    client.force_login(staff)
+
+    response = client.post(
+        f'/staff/dogs/{dog.id}/schedule/',
+        {'appointment_date': '2026-02-04', 'appointment_time': '09:00'},
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert Notification.objects.filter(user=owner, title__icontains='Vaccination').exists()

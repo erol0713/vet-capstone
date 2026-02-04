@@ -24,6 +24,10 @@ class CustomUser(AbstractUser):
 
 
 class UserProfile(models.Model):
+    class Gender(models.TextChoices):
+        MALE = 'MALE', 'Male'
+        FEMALE = 'FEMALE', 'Female'
+
     class StatusBadge(models.TextChoices):
         GREEN = 'GREEN', 'Green'
         ORANGE = 'ORANGE', 'Orange'
@@ -36,6 +40,8 @@ class UserProfile(models.Model):
     address = models.CharField(max_length=255, blank=True)
     age = models.PositiveIntegerField(null=True, blank=True)
     birthday = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=Gender.choices, blank=True)
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
 
     def __str__(self) -> str:
         return f"Profile: {self.user.username}"

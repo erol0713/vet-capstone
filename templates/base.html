@@ -49,20 +49,42 @@
                 {% endif %}
               </li>
               {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'dogs_manage_list' %}">Intake</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'reports_staff_list' %}">Reports</a>
+                <li class="nav-item dropdown">
+                  <a
+                    class="nav-link dropdown-toggle"
+                    href="#"
+                    id="manageDogDropdown"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Manage Dogs
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="manageDogDropdown">
+                    <li><a class="dropdown-item" href="{% url 'dogs_manage_list' %}">Intake</a></li>
+                    <li>
+                      <a class="dropdown-item" href="{% url 'dogs_registered_by_owner' %}">
+                        Registered Dogs
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="{% url 'dogs_vaccination_requests' %}">
+                        Vaccinations
+                      </a>
+                    </li>
+                    <li><a class="dropdown-item" href="{% url 'reports_staff_list' %}">Reports</a></li>
+                    <li>
+                      <a class="dropdown-item" href="{% url 'adoption_staff_queue' %}">
+                        Adoption Queue
+                      </a>
+                    </li>
+                  </ul>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'verification_queue' %}">Verifications</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'penalties_checklist' %}">Penalties</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'adoption_staff_queue' %}">Adoption Queue</a>
                 </li>
               {% else %}
                 <li class="nav-item">

@@ -2,7 +2,15 @@
 
 ## Now
 - [ ] Define MVP user flows (public browsing, report, adoption, reclaim, penalty).
-- [x] Public “Report a Stray” form.
+- [x] Enforce vaccination status + proof/appointment request on dog registration.
+- [x] Add admin/staff view for registered dogs grouped by owner with navbar link.
+- [x] Allow report submissions to include a dog photo/video upload.
+- [x] Build user report form with Google Maps/manual address + API endpoint.
+- [x] Add profile photo upload to user profiles.
+- [x] Add gender field to profile information.
+- [x] Redesign profile layout with modern premium styling.
+- [x] Apply premium card system to dashboard and face verification pages.
+- [x] Public "Report a Stray" form.
 - [x] Staff/Admin report list + detail page.
 - [x] Report status workflow + notifications.
 - [x] Public report list (read-only).

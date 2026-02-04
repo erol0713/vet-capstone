@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from users.decorators import role_required, verified_required
+from notifications.models import Notification
 
-from .forms import DogForm, UserDogRegistrationForm
+from .forms import DogForm, UserDogRegistrationForm, VaccinationScheduleForm
 from .models import Dog
 
 
@@ -75,12 +77,100 @@ def manage_list(request):
 
 @login_required
 @role_required('ADMIN', 'STAFF')
+def registered_by_owner(request):
+    dogs = (
+        Dog.objects.select_related('owner')
+        .filter(
+            owner__isnull=False,
+            capture_datetime__isnull=True,
+            surrender_datetime__isnull=True,
+        )
+        .order_by('owner__username', 'name')
+    )
+    grouped = {}
+    for dog in dogs:
+        grouped.setdefault(dog.owner, []).append(dog)
+    return render(request, 'dogs/registered_by_owner.html', {'grouped': grouped})
+
+
+@login_required
+@role_required('ADMIN', 'STAFF')
+def vaccination_requests(request):
+    dogs = (
+        Dog.objects.select_related('owner')
+        .filter(
+            owner__isnull=False,
+            capture_datetime__isnull=True,
+            surrender_datetime__isnull=True,
+            vaccination_status=Dog.VaccinationStatus.UNVACCINATED,
+            vaccination_request=True,
+        )
+        .order_by('owner__username', 'name')
+    )
+    return render(request, 'dogs/vaccination_requests.html', {'dogs': dogs})
+
+
+@login_required
+@role_required('ADMIN', 'STAFF')
+def schedule_vaccination(request, pk: int):
+    dog = get_object_or_404(
+        Dog,
+        pk=pk,
+        owner__isnull=False,
+        capture_datetime__isnull=True,
+        surrender_datetime__isnull=True,
+        vaccination_status=Dog.VaccinationStatus.UNVACCINATED,
+        vaccination_request=True,
+    )
+    form = VaccinationScheduleForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        dog.vaccination_schedule = form.cleaned_data['vaccination_schedule']
+        dog.save(update_fields=['vaccination_schedule'])
+        schedule = (
+            timezone.localtime(dog.vaccination_schedule)
+            if timezone.is_aware(dog.vaccination_schedule)
+            else dog.vaccination_schedule
+        )
+        Notification.objects.create(
+            user=dog.owner,
+            title='Vaccination Appointment Scheduled',
+            message=(
+                f'Your dog "{dog.name or "Unnamed Dog"}" has a vaccination appointment '
+                f'on {schedule:%b %d, %Y %I:%M %p}.'
+            ),
+        )
+        messages.success(request, 'Vaccination appointment scheduled.')
+        return redirect('dogs_registered_by_owner')
+    return render(request, 'dogs/schedule_vaccination.html', {'dog': dog, 'form': form})
+
+
+@login_required
+@role_required('ADMIN', 'STAFF')
 def create_dog(request):
     form = DogForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
         dog = form.save(commit=False)
         apply_intake_status(dog)
         dog.save()
+        if (
+            dog.owner
+            and dog.vaccination_status == Dog.VaccinationStatus.UNVACCINATED
+            and dog.vaccination_request
+            and dog.vaccination_schedule
+        ):
+            schedule = (
+                timezone.localtime(dog.vaccination_schedule)
+                if timezone.is_aware(dog.vaccination_schedule)
+                else dog.vaccination_schedule
+            )
+            Notification.objects.create(
+                user=dog.owner,
+                title='Vaccination Appointment Scheduled',
+                message=(
+                    f'Your dog "{dog.name or "Unnamed Dog"}" has a vaccination appointment '
+                    f'on {schedule:%b %d, %Y %I:%M %p}.'
+                ),
+            )
         messages.success(request, f'Dog #{dog.pk} created.')
         return redirect('dogs_manage_list')
     return render(request, 'dogs/form.html', {'form': form, 'title': 'Create Dog', 'dog': None})

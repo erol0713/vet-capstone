@@ -7,6 +7,7 @@ all actions require authentication + verification.
 - Django 4.2+ (local uses Django 5)
 - SQLite (dev), PostgreSQL (prod)
 - Bootstrap 5.3, Bootstrap Icons, Chart.js, face-api.js
+- Pillow (image uploads)
 - pytest for tests (80% minimum coverage target)
 
 ## Quick Start (Dev)
@@ -29,5 +30,6 @@ python manage.py runserver
 - Custom user model is in `users.CustomUser` (do not remove).
 - Media files stored in `media/`.
 - Static assets in `static/`.
+- API endpoint: `POST /api/reports` accepts JSON payload with `location_method` and returns `report_id`.
 - Keep files under 500 lines; split into modules as needed.
 - Penalty checklist includes a printable citation ticket with owner + violations.

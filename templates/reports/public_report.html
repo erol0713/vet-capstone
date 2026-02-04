@@ -1,49 +1,174 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Report a Stray{% endblock %}
+{% block title %}User Report{% endblock %}
 
 {% block content %}
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h2 class="h5 mb-2">Report a Stray</h2>
-            <p class="text-muted">Submit details so staff can respond quickly.</p>
-            <form method="post" enctype="multipart/form-data">
+  <section class="profile-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-9">
+          <div class="profile-card">
+            <div class="profile-card-header">
+              <div>
+                <p class="profile-card-eyebrow">Community</p>
+                <h2 class="profile-card-title">User Report</h2>
+              </div>
+              <span class="profile-chip">Public Form</span>
+            </div>
+            <p class="profile-note">
+              Submit a report with either a Google Maps location or a full address.
+            </p>
+
+            <form id="reportForm" class="profile-form" novalidate>
               {% csrf_token %}
-              {{ form.non_field_errors }}
+              <div id="reportAlert" class="alert d-none" role="alert"></div>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Report Type</label>
-                  {{ form.report_type }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Location</label>
-                  {{ form.location }}
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Description</label>
-                  {{ form.description }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Contact Name</label>
-                  {{ form.contact_name }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Contact Phone</label>
-                  {{ form.contact_phone }}
+                  <label class="form-label" for="reportType">Report Type</label>
+                  <select class="form-select" id="reportType" required>
+                    {% for value, label in report_type_choices %}
+                      <option value="{{ value }}" {% if value == 'incident' %}selected{% endif %}>
+                        {{ label }}
+                      </option>
+                    {% endfor %}
+                  </select>
                 </div>
                 <div class="col-12">
-                  <label class="form-label">Photo</label>
-                  {{ form.photo }}
+                  <label class="form-label" for="description">Description</label>
+                  <textarea
+                    class="form-control"
+                    id="description"
+                    rows="3"
+                    placeholder="Describe what happened and any helpful details."
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Location Details</label>
+                  <div class="form-text">
+                    Provide both a Google Maps location and a full address so staff can locate you faster.
+                  </div>
+                </div>
+
+                <div class="col-12" id="googleSection">
+                  <div class="row g-3">
+                    <div class="col-12 d-flex flex-wrap gap-2">
+                      <a
+                        class="btn btn-outline-secondary profile-btn"
+                        href="https://maps.google.com"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        Open Google Maps
+                      </a>
+                      <button
+                        class="btn btn-outline-primary profile-btn"
+                        type="button"
+                        id="geoBtn"
+                      >
+                        Use my current location
+                      </button>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" for="latInput">Latitude</label>
+                      <input
+                        class="form-control"
+                        id="latInput"
+                        type="number"
+                        step="any"
+                        placeholder="e.g. 9.3639"
+                        required
+                      >
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" for="lngInput">Longitude</label>
+                      <input
+                        class="form-control"
+                        id="lngInput"
+                        type="number"
+                        step="any"
+                        placeholder="e.g. 122.8072"
+                        required
+                      >
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label" for="mapsUrl">Google Maps URL</label>
+                      <input
+                        class="form-control"
+                        id="mapsUrl"
+                        type="url"
+                        placeholder="https://maps.google.com/?q=lat,lng"
+                        required
+                      >
+                    </div>
+                    <div class="col-12">
+                      <div class="form-text">
+                        Paste a Google Maps share link or enter coordinates to generate the URL.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12" id="manualSection">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label" for="fullName">Full Name</label>
+                      <input class="form-control" id="fullName" type="text" placeholder="Your name" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="phone">Phone</label>
+                      <input class="form-control" id="phone" type="tel" placeholder="e.g. 09xx xxx xxxx">
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label" for="street">Street</label>
+                      <input class="form-control" id="street" type="text" placeholder="House no., street" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="barangay">Barangay</label>
+                      <select class="form-select" id="barangay">
+                        <option value="">Select barangay</option>
+                        {% for barangay in barangay_options %}
+                          <option value="{{ barangay }}">{{ barangay }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="city">City</label>
+                      <input class="form-control" id="city" type="text" placeholder="City" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="province">Province/State</label>
+                      <input class="form-control" id="province" type="text" placeholder="Province or state" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="postalCode">Postal Code</label>
+                      <input class="form-control" id="postalCode" type="text" placeholder="Postal code" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="dogMedia">Dog Photo or Video</label>
+                  <input class="form-control" id="dogMedia" type="file" accept="image/*,video/*">
+                  <div class="form-text">
+                    Upload a clear image or short video to help staff identify the dog.
+                  </div>
                 </div>
               </div>
-              <button class="btn btn-primary mt-3" type="submit">Submit Report</button>
+
+              <div class="profile-form-actions">
+                <button class="btn btn-primary profile-btn" type="submit" id="submitBtn">
+                  Submit Report
+                </button>
+                <span class="profile-form-hint">Your report will be reviewed by staff.</span>
+              </div>
             </form>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <script src="{% static 'js/report_form.js' %}"></script>
 {% endblock %}
