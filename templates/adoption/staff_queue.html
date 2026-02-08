@@ -23,6 +23,16 @@
                         {% endif %}
                       </strong>
                       <div class="small text-muted">{{ item.requester.email }}</div>
+                      {% if item.appointment_schedule %}
+                        <div class="small text-muted">
+                          Appointment: {{ item.appointment_schedule|date:"M d, Y H:i" }}
+                        </div>
+                      {% endif %}
+                      {% if item.confirmed_at %}
+                        <div class="small text-success">User confirmed</div>
+                      {% else %}
+                        <div class="small text-muted">Awaiting user confirmation</div>
+                      {% endif %}
                     </div>
                     <span class="badge bg-secondary">{{ item.get_status_display }}</span>
                   </div>
@@ -37,6 +47,28 @@
                       Reject
                     </a>
                   </div>
+                  {% if item.confirmed_at %}
+                    <form
+                      method="post"
+                      action="{% url 'adoption_schedule' item.pk %}"
+                      class="mt-2"
+                    >
+                      {% csrf_token %}
+                      <div class="row g-2">
+                        <div class="col-6">
+                          <input class="form-control" type="date" name="appointment_date" required>
+                        </div>
+                        <div class="col-6">
+                          <input class="form-control" type="time" name="appointment_time" required>
+                        </div>
+                        <div class="col-12">
+                          <button class="btn btn-sm btn-outline-primary" type="submit">
+                            Set Appointment
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  {% endif %}
                 </li>
               {% empty %}
                 <li class="list-group-item text-muted">No adoption requests.</li>
@@ -63,6 +95,13 @@
                         {% endif %}
                       </strong>
                       <div class="small text-muted">{{ item.owner.email }}</div>
+                      {% if item.ownership_proof %}
+                        <div class="small">
+                          <a href="{{ item.ownership_proof.url }}" target="_blank" rel="noopener">View ownership proof</a>
+                        </div>
+                      {% else %}
+                        <div class="small text-muted">No ownership proof uploaded.</div>
+                      {% endif %}
                     </div>
                     <span class="badge bg-secondary">{{ item.get_status_display }}</span>
                   </div>

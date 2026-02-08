@@ -6,9 +6,10 @@ from core.models import TimeStampedModel
 
 class Report(TimeStampedModel):
     class ReportType(models.TextChoices):
-        STRAY = 'STRAY', 'Stray'
-        SURRENDER = 'SURRENDER', 'Surrender'
-        INCIDENT = 'INCIDENT', 'Incident'
+        SURRENDER = 'SURRENDER', 'Surrender Dog'
+        DANGEROUS = 'DANGEROUS', 'Dangerous Dog'
+        STRAY = 'STRAY', 'Stray Dog'
+        OTHER = 'OTHER', 'Other'
 
     class LocationMethod(models.TextChoices):
         GOOGLE_MAPS = 'GOOGLE_MAPS', 'Google Maps'
@@ -31,6 +32,7 @@ class Report(TimeStampedModel):
     notes = models.TextField(blank=True)
     contact_name = models.CharField(max_length=120, blank=True)
     contact_phone = models.CharField(max_length=40, blank=True)
+    contact_email = models.EmailField(blank=True)
     description = models.TextField(blank=True)
     location_method = models.CharField(
         max_length=20,

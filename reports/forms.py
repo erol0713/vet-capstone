@@ -37,7 +37,7 @@ BAYAWAN_BARANGAYS = [
 class PublicReportForm(forms.ModelForm):
     class Meta:
         model = Report
-        fields = ('report_type', 'location', 'description', 'contact_name', 'contact_phone', 'photo')
+        fields = ('report_type', 'location', 'description', 'contact_name', 'contact_phone', 'contact_email', 'photo')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,6 +55,10 @@ class PublicReportForm(forms.ModelForm):
             field.widget.attrs.setdefault('class', css)
         if 'description' in self.fields:
             self.fields['description'].widget.attrs.setdefault('rows', 4)
+        if 'contact_name' in self.fields:
+            self.fields['contact_name'].required = True
+        if 'contact_phone' in self.fields:
+            self.fields['contact_phone'].required = True
 
 
 class StaffReportUpdateForm(forms.ModelForm):

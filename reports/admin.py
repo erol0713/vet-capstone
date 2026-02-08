@@ -15,4 +15,4 @@ class ReportAdmin(admin.ModelAdmin):
         'location',
     )
     list_filter = ('report_type', 'status', 'location_method')
-    search_fields = ('location', 'contact_name', 'contact_phone', 'description', 'reported_by__email')
+    search_fields = ('location', 'contact_name', 'contact_phone', 'contact_email', 'description', 'reported_by__email')

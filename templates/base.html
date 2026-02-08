@@ -109,13 +109,13 @@
             {% endif %}
             {% if request.user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link position-relative" href="{% url 'notifications_inbox' %}">
-                  <i class="bi bi-bell"></i>
-                  {% if unread_notifications %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      {{ unread_notifications }}
-                    </span>
-                  {% endif %}
+                <a class="nav-link" href="{% url 'notifications_inbox' %}">
+                  <span class="notification-bell">
+                    <i class="bi bi-bell"></i>
+                    {% if unread_notifications %}
+                      <span class="notification-badge">{{ unread_notifications }}</span>
+                    {% endif %}
+                  </span>
                 </a>
               </li>
               <li class="nav-item dropdown">

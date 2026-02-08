@@ -12,6 +12,9 @@
             <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
               {{ form.non_field_errors }}
+              {% if next_url %}
+                <input type="hidden" name="next" value="{{ next_url }}">
+              {% endif %}
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Name</label>
@@ -53,21 +56,23 @@
                   <label class="form-label">Photo</label>
                   {{ form.photo }}
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label">Vaccination Status</label>
-                  {{ form.vaccination_status }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Vaccination Proof</label>
-                  {{ form.vaccination_proof }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label d-block">Vaccination Request</label>
-                  <div class="form-check">
-                    {{ form.vaccination_request }}
-                    <label class="form-check-label">Appointment requested</label>
+                {% if show_vaccination_fields %}
+                  <div class="col-md-6">
+                    <label class="form-label">Vaccination Status</label>
+                    {{ form.vaccination_status }}
                   </div>
-                </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Vaccination Proof</label>
+                    {{ form.vaccination_proof }}
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label d-block">Vaccination Request</label>
+                    <div class="form-check">
+                      {{ form.vaccination_request }}
+                      <label class="form-check-label">Appointment requested</label>
+                    </div>
+                  </div>
+                {% endif %}
                 <div class="col-12">
                   <label class="form-label">Notes</label>
                   {{ form.notes }}
@@ -75,18 +80,12 @@
               </div>
               <div class="mt-4 d-flex gap-2 flex-wrap">
                 <button class="btn btn-primary" type="submit">Save</button>
-                <a class="btn btn-outline-secondary" href="{% url 'dogs_manage_list' %}">Cancel</a>
+                {% if next_url %}
+                  <a class="btn btn-outline-secondary" href="{{ next_url }}">Cancel</a>
+                {% else %}
+                  <a class="btn btn-outline-secondary" href="{% url 'dogs_manage_list' %}">Cancel</a>
+                {% endif %}
                 {% if dog %}
-                  <form method="post" action="{% url 'dogs_delete_staff' dog.pk %}">
-                    {% csrf_token %}
-                    <button
-                      class="btn btn-outline-danger"
-                      type="submit"
-                      onclick="return confirm('Delete this dog record?');"
-                    >
-                      Delete
-                    </button>
-                  </form>
                 {% endif %}
               </div>
             </form>

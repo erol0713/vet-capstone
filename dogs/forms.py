@@ -65,6 +65,11 @@ class DogForm(forms.ModelForm):
             elif widget_type == 'select' or field.widget.__class__.__name__.lower().startswith('select'):
                 css = 'form-select'
             field.widget.attrs.setdefault('class', css)
+        if 'status' in self.fields:
+            self.fields['status'].choices = [
+                (Dog.Status.AVAILABLE, Dog.Status.AVAILABLE.label),
+                (Dog.Status.RECLAIMED, Dog.Status.RECLAIMED.label),
+            ]
         self.fields['barangay'] = forms.ChoiceField(
             choices=[('', 'Select barangay')] + [(b, b) for b in BAYAWAN_BARANGAYS],
             required=False,

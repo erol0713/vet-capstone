@@ -8,7 +8,7 @@ from reports.models import Report
 
 def test_api_reports_google_maps_and_address_success(client):
     payload = {
-        'report_type': 'incident',
+        'report_type': 'dangerous',
         'description': 'Loose dog near the market.',
         'location_method': 'both',
         'location': {
@@ -19,12 +19,12 @@ def test_api_reports_google_maps_and_address_success(client):
                 'street': 'Rizal St.',
                 'barangay': 'Poblacion',
                 'city': 'Bayawan',
-                'province': 'Negros Oriental',
-                'postal_code': '6221',
             },
         },
         'created_at': '2026-02-03T00:00:00Z',
         'contact_name': 'Juan Dela Cruz',
+        'contact_phone': '09123456789',
+        'contact_email': 'juan@example.com',
     }
 
     response = client.post(
@@ -39,12 +39,13 @@ def test_api_reports_google_maps_and_address_success(client):
     assert report.location_method == Report.LocationMethod.BOTH
     assert float(report.latitude) == payload['location']['lat']
     assert float(report.longitude) == payload['location']['lng']
+    assert report.contact_email == payload['contact_email']
 
 
 def test_api_reports_accepts_photo_upload(client, settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
     payload = {
-        'report_type': 'incident',
+        'report_type': 'dangerous',
         'description': 'Dog spotted with a collar.',
         'location_method': 'both',
         'location': {
@@ -55,12 +56,11 @@ def test_api_reports_accepts_photo_upload(client, settings, tmp_path):
                 'street': 'Rizal St.',
                 'barangay': 'Poblacion',
                 'city': 'Bayawan',
-                'province': 'Negros Oriental',
-                'postal_code': '6221',
             },
         },
         'created_at': '2026-02-03T00:00:00Z',
         'contact_name': 'Juan Dela Cruz',
+        'contact_phone': '09123456789',
     }
     photo = SimpleUploadedFile('dog.jpg', b'fake-image-bytes', content_type='image/jpeg')
 
@@ -78,7 +78,7 @@ def test_api_reports_accepts_photo_upload(client, settings, tmp_path):
 def test_api_reports_accepts_video_upload(client, settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
     payload = {
-        'report_type': 'incident',
+        'report_type': 'dangerous',
         'description': 'Video evidence submitted.',
         'location_method': 'both',
         'location': {
@@ -89,12 +89,11 @@ def test_api_reports_accepts_video_upload(client, settings, tmp_path):
                 'street': 'Rizal St.',
                 'barangay': 'Poblacion',
                 'city': 'Bayawan',
-                'province': 'Negros Oriental',
-                'postal_code': '6221',
             },
         },
         'created_at': '2026-02-03T00:00:00Z',
         'contact_name': 'Juan Dela Cruz',
+        'contact_phone': '09123456789',
     }
     video = SimpleUploadedFile('dog.mp4', b'fake-video-bytes', content_type='video/mp4')
 
@@ -111,7 +110,7 @@ def test_api_reports_accepts_video_upload(client, settings, tmp_path):
 
 def test_api_reports_missing_fields_failure(client):
     payload = {
-        'report_type': 'incident',
+        'report_type': 'dangerous',
         'description': 'Missing location details.',
         'location_method': 'both',
         'location': {'lat': None, 'lng': None},
@@ -131,7 +130,7 @@ def test_api_reports_missing_fields_failure(client):
 
 def test_api_reports_missing_address_failure(client):
     payload = {
-        'report_type': 'incident',
+        'report_type': 'dangerous',
         'description': 'Missing address fields.',
         'location_method': 'both',
         'location': {
@@ -142,8 +141,6 @@ def test_api_reports_missing_address_failure(client):
                 'street': '',
                 'barangay': '',
                 'city': '',
-                'province': '',
-                'postal_code': '',
             },
         },
         'created_at': '2026-02-03T00:00:00Z',

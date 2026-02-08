@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.urls import reverse
 
 from notifications.models import Notification
 from vaccinations.models import VaccinationRecord
@@ -27,6 +28,7 @@ class Command(BaseCommand):
                     f"Your dog's {record.vaccine_type} vaccine will expire on "
                     f"{record.expiration_date}."
                 ),
+                action_url=reverse('profile'),
             )
             record.notified_three_days = True
             record.save(update_fields=['notified_three_days'])
@@ -44,6 +46,7 @@ class Command(BaseCommand):
                     f"Your dog's {record.vaccine_type} vaccine expires today "
                     f"({record.expiration_date})."
                 ),
+                action_url=reverse('profile'),
             )
             record.notified_on_expiry = True
             record.save(update_fields=['notified_on_expiry'])

@@ -19,6 +19,9 @@ class AdoptionReservation(TimeStampedModel):
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     reservation_date = models.DateField(null=True, blank=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    eligibility_notified_at = models.DateTimeField(null=True, blank=True)
+    appointment_schedule = models.DateTimeField(null=True, blank=True)
     staff_notes = models.TextField(blank=True)
 
     def __str__(self) -> str:
@@ -44,7 +47,7 @@ class ReclaimRequest(TimeStampedModel):
         related_name='reclaim_approvals',
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-    reclaim_date = models.DateField(null=True, blank=True)
+    ownership_proof = models.FileField(upload_to='reclaim_proofs/', blank=True)
     staff_notes = models.TextField(blank=True)
 
     def __str__(self) -> str:

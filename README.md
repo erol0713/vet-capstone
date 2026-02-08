@@ -31,5 +31,14 @@ python manage.py runserver
 - Media files stored in `media/`.
 - Static assets in `static/`.
 - API endpoint: `POST /api/reports` accepts JSON payload with `location_method` and returns `report_id`.
+- Set `GOOGLE_MAPS_API_KEY` in the environment to enable map search and pin drop on the report form.
 - Keep files under 500 lines; split into modules as needed.
 - Penalty checklist includes a printable citation ticket with owner + violations.
+- Reclaim requests require an ownership proof upload for admin/staff review.
+- Adoption reservations for captured dogs notify after 3 days if unclaimed; users confirm, staff schedule appointments.
+
+## MVP User Flows (Draft)
+- Public browsing: view dog pound inventory and public reports (read-only).
+- Public report: submit stray report with map/manual address + media upload.
+- Verified owner: register dog, submit adoption request, submit reclaim request.
+- Staff/Admin: intake management, report triage, adoption/reclaim approvals, penalty processing, vaccination scheduling, analytics review.

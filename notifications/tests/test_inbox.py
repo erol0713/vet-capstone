@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from notifications.models import Notification
 
@@ -42,4 +43,41 @@ def test_mark_read(client):
 
     notification.refresh_from_db()
     assert response.status_code == 200
+    assert notification.is_read is True
+
+
+def test_mark_read_redirects_to_action_url(client):
+    user = create_user()
+    action_url = reverse('reports_public_list')
+    notification = Notification.objects.create(
+        user=user,
+        title='Alert',
+        message='Test',
+        action_url=action_url,
+    )
+    client.force_login(user)
+
+    response = client.get(f'/notifications/read/{notification.id}/')
+
+    notification.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == action_url
+    assert notification.is_read is True
+
+
+def test_mark_read_blocks_external_action_url(client):
+    user = create_user()
+    notification = Notification.objects.create(
+        user=user,
+        title='Alert',
+        message='Test',
+        action_url='https://example.com/phishing',
+    )
+    client.force_login(user)
+
+    response = client.get(f'/notifications/read/{notification.id}/')
+
+    notification.refresh_from_db()
+    assert response.status_code == 302
+    assert response.url == reverse('notifications_inbox')
     assert notification.is_read is True

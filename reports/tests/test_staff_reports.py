@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from notifications.models import Notification
 from reports.models import Report
@@ -50,3 +51,44 @@ def test_staff_can_update_status_and_notify(client):
     assert response.status_code == 200
     assert report.status == 'IN_REVIEW'
     assert Notification.objects.filter(user=user).exists()
+
+
+def test_staff_list_orders_unresolved_before_completed(client):
+    staff = create_staff()
+    client.force_login(staff)
+    now = timezone.now()
+
+    open_report = Report.objects.create(
+        report_type='STRAY',
+        location='Poblacion',
+        status=Report.Status.OPEN,
+    )
+    in_review_report = Report.objects.create(
+        report_type='STRAY',
+        location='Poblacion',
+        status=Report.Status.IN_REVIEW,
+    )
+    resolved_report = Report.objects.create(
+        report_type='STRAY',
+        location='Poblacion',
+        status=Report.Status.RESOLVED,
+    )
+    closed_report = Report.objects.create(
+        report_type='STRAY',
+        location='Poblacion',
+        status=Report.Status.CLOSED,
+    )
+
+    Report.objects.filter(id=open_report.id).update(created_at=now - timezone.timedelta(days=2))
+    Report.objects.filter(id=in_review_report.id).update(created_at=now - timezone.timedelta(days=1))
+    Report.objects.filter(id=resolved_report.id).update(created_at=now)
+    Report.objects.filter(id=closed_report.id).update(created_at=now - timezone.timedelta(days=3))
+
+    response = client.get('/staff/reports/')
+
+    assert response.status_code == 200
+    ordered = list(response.context['reports'])
+    assert ordered[0].id == in_review_report.id
+    assert ordered[1].id == open_report.id
+    assert ordered[-2].id == resolved_report.id
+    assert ordered[-1].id == closed_report.id

@@ -35,6 +35,9 @@
                 {% if report.address_json.province %}, {{ report.address_json.province }}{% endif %}
                 {% if report.address_json.postal_code %}, {{ report.address_json.postal_code }}{% endif %}
               </div>
+              {% if report.address_json.notes %}
+                <p class="mb-1"><strong>Address Notes:</strong> {{ report.address_json.notes }}</p>
+              {% endif %}
             {% endif %}
             <p class="mb-1"><strong>Description:</strong> {{ report.description|default:"-" }}</p>
             <p class="mb-1"><strong>Notes:</strong> {{ report.notes|default:"-" }}</p>
@@ -82,6 +85,10 @@
             <p class="mb-1">
               <strong>Contact Phone:</strong>
               {{ report.contact_phone|default:"-" }}
+            </p>
+            <p class="mb-1">
+              <strong>Contact Email:</strong>
+              {{ report.contact_email|default:"-" }}
             </p>
             <p class="mb-1">
               <strong>Account:</strong>

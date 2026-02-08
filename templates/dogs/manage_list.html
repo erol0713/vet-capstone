@@ -20,9 +20,7 @@
               <th>ID</th>
               <th>Name</th>
               <th>Status</th>
-              <th>Vaccination</th>
               <th>Barangay</th>
-              <th>Kennel</th>
               <th></th>
             </tr>
           </thead>
@@ -32,23 +30,7 @@
                 <td>{{ dog.id }}</td>
                 <td>{{ dog.name|default:"Unnamed" }}</td>
                 <td>{{ dog.get_status_display }}</td>
-                <td>
-                  {% if dog.vaccination_status %}
-                    {{ dog.get_vaccination_status_display }}
-                    {% if dog.vaccination_status == 'UNVACCINATED' and dog.vaccination_request %}
-                      <span class="badge bg-warning text-dark">Requested</span>
-                    {% endif %}
-                    {% if dog.vaccination_schedule %}
-                      <div class="small text-muted">
-                        {{ dog.vaccination_schedule|date:"M d, Y H:i" }}
-                      </div>
-                    {% endif %}
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
                 <td>{{ dog.barangay|default:"-" }}</td>
-                <td>{{ dog.kennel_slot|default:"-" }}</td>
                 <td class="text-end">
                   <div class="d-inline-flex gap-2">
                     <a class="btn btn-sm btn-outline-secondary" href="{% url 'dogs_edit' dog.pk %}">
@@ -69,7 +51,7 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="7" class="text-center text-muted py-3">No dogs yet.</td>
+                <td colspan="5" class="text-center text-muted py-3">No dogs yet.</td>
               </tr>
             {% endfor %}
           </tbody>

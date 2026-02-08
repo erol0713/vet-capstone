@@ -12,15 +12,34 @@
             <h3 class="h6 mb-3">Adoption Reservations</h3>
             <ul class="list-group list-group-flush">
               {% for item in adoptions %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <span>
-                    {% if item.dog.name %}
-                      {{ item.dog.name }}
-                    {% else %}
-                      Dog #{{ item.dog_id }}
-                    {% endif %}
-                  </span>
-                  <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span>
+                      {% if item.dog.name %}
+                        {{ item.dog.name }}
+                      {% else %}
+                        Dog #{{ item.dog_id }}
+                      {% endif %}
+                    </span>
+                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                  </div>
+                  {% if item.appointment_schedule %}
+                    <div class="small text-muted mt-1">
+                      Appointment: {{ item.appointment_schedule|date:"M d, Y H:i" }}
+                    </div>
+                  {% endif %}
+                  {% if item.confirmed_at %}
+                    <div class="small text-success mt-1">Confirmed</div>
+                  {% elif item.eligibility_notified_at %}
+                    <form method="post" action="{% url 'adoption_confirm_reservation' item.pk %}" class="mt-2">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-primary" type="submit">
+                        Confirm Adoption
+                      </button>
+                    </form>
+                  {% else %}
+                    <div class="small text-muted mt-1">Waiting for reclaim window.</div>
+                  {% endif %}
                 </li>
               {% empty %}
                 <li class="list-group-item text-muted">No adoption requests yet.</li>

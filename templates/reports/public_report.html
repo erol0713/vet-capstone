@@ -8,7 +8,7 @@
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-lg-9">
-          <div class="profile-card">
+          <div class="profile-card report-wizard">
             <div class="profile-card-header">
               <div>
                 <p class="profile-card-eyebrow">Community</p>
@@ -16,159 +16,268 @@
               </div>
               <span class="profile-chip">Public Form</span>
             </div>
-            <p class="profile-note">
-              Submit a report with either a Google Maps location or a full address.
-            </p>
+            <p class="profile-note">Complete the steps below to submit a dog report.</p>
+
+            <div class="report-stepper" id="reportStepper">
+              <div class="report-stepper-item is-active" data-step-indicator="1">
+                <span class="report-stepper-index">1</span>
+                <div>
+                  <div class="fw-semibold">Your Information</div>
+                  <div class="small text-muted">Manual address</div>
+                </div>
+              </div>
+              <div class="report-stepper-item" data-step-indicator="2">
+                <span class="report-stepper-index">2</span>
+                <div>
+                  <div class="fw-semibold">Map Location</div>
+                  <div class="small text-muted">Pin and search</div>
+                </div>
+              </div>
+              <div class="report-stepper-item" data-step-indicator="3">
+                <span class="report-stepper-index">3</span>
+                <div>
+                  <div class="fw-semibold">Report Details</div>
+                  <div class="small text-muted">Type and media</div>
+                </div>
+              </div>
+            </div>
 
             <form id="reportForm" class="profile-form" novalidate>
               {% csrf_token %}
               <div id="reportAlert" class="alert d-none" role="alert"></div>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label" for="reportType">Report Type</label>
-                  <select class="form-select" id="reportType" required>
-                    {% for value, label in report_type_choices %}
-                      <option value="{{ value }}" {% if value == 'incident' %}selected{% endif %}>
-                        {{ label }}
-                      </option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label class="form-label" for="description">Description</label>
-                  <textarea
-                    class="form-control"
-                    id="description"
-                    rows="3"
-                    placeholder="Describe what happened and any helpful details."
-                    required
-                  ></textarea>
-                </div>
 
-                <div class="col-12">
-                  <label class="form-label">Location Details</label>
-                  <div class="form-text">
-                    Provide both a Google Maps location and a full address so staff can locate you faster.
+              <div class="report-step" data-report-step="1" data-step-label="Your info and address">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <h3 class="h6 mb-1">Your Information</h3>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="fullName">Full Name</label>
+                    <input class="form-control" id="fullName" type="text" placeholder="Your name" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="phone">Phone Number</label>
+                    <input class="form-control" id="phone" type="tel" placeholder="e.g. 09xx xxx xxxx" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="email">Email Address (Optional)</label>
+                    <input class="form-control" id="email" type="email" placeholder="name@example.com">
+                  </div>
+
+                  <div class="col-12 mt-1">
+                    <h3 class="h6 mb-1">Manual Address</h3>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="street">Street Address</label>
+                    <input class="form-control" id="street" type="text" placeholder="House no., street" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="city">City</label>
+                    <input class="form-control" id="city" type="text" placeholder="City" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="barangay">Area / Neighborhood</label>
+                    <input
+                      class="form-control"
+                      id="barangay"
+                      type="text"
+                      list="barangayOptions"
+                      placeholder="Barangay or neighborhood"
+                      required
+                    >
+                    <datalist id="barangayOptions">
+                      {% for barangay in barangay_options %}
+                        <option value="{{ barangay }}"></option>
+                      {% endfor %}
+                    </datalist>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="addressNotes">Additional Notes (Optional)</label>
+                    <textarea
+                      class="form-control"
+                      id="addressNotes"
+                      rows="2"
+                      placeholder="Landmarks, nearest building, or other directions"
+                    ></textarea>
                   </div>
                 </div>
+              </div>
 
-                <div class="col-12" id="googleSection">
-                  <div class="row g-3">
-                    <div class="col-12 d-flex flex-wrap gap-2">
-                      <a
-                        class="btn btn-outline-secondary profile-btn"
-                        href="https://maps.google.com"
-                        target="_blank"
-                        rel="noopener"
-                      >
-                        Open Google Maps
-                      </a>
-                      <button
-                        class="btn btn-outline-primary profile-btn"
-                        type="button"
-                        id="geoBtn"
-                      >
-                        Use my current location
-                      </button>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label" for="latInput">Latitude</label>
-                      <input
-                        class="form-control"
-                        id="latInput"
-                        type="number"
-                        step="any"
-                        placeholder="e.g. 9.3639"
-                        required
-                      >
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label" for="lngInput">Longitude</label>
-                      <input
-                        class="form-control"
-                        id="lngInput"
-                        type="number"
-                        step="any"
-                        placeholder="e.g. 122.8072"
-                        required
-                      >
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label" for="mapsUrl">Google Maps URL</label>
-                      <input
-                        class="form-control"
-                        id="mapsUrl"
-                        type="url"
-                        placeholder="https://maps.google.com/?q=lat,lng"
-                        required
-                      >
-                    </div>
-                    <div class="col-12">
-                      <div class="form-text">
-                        Paste a Google Maps share link or enter coordinates to generate the URL.
+              <div class="report-step d-none" data-report-step="2" data-step-label="Map location">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <h3 class="h6 mb-1">Choose Location on Map</h3>
+                  </div>
+                  <div class="col-12">
+                    <div class="report-map-shell">
+                      <div class="report-map-toolbar">
+                        <input
+                          class="form-control"
+                          id="mapSearch"
+                          type="text"
+                          placeholder="Search for a location"
+                        >
+                        <button
+                          class="btn btn-outline-primary profile-btn"
+                          type="button"
+                          id="geoBtn"
+                        >
+                          Use current location
+                        </button>
+                      </div>
+                      <div class="report-map" id="reportMap"></div>
+                      <div class="report-map-preview d-none mt-3" id="mapPreview">
+                        <iframe
+                          id="mapPreviewFrame"
+                          title="Map preview"
+                          loading="lazy"
+                          referrerpolicy="no-referrer-when-downgrade"
+                        ></iframe>
+                      </div>
+                      <div id="mapFallback" class="alert alert-warning d-none mt-3" role="alert">
+                        Google Maps is not available yet. Paste a Maps link or coordinates below.
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div class="col-12" id="manualSection">
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label" for="fullName">Full Name</label>
-                      <input class="form-control" id="fullName" type="text" placeholder="Your name" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="phone">Phone</label>
-                      <input class="form-control" id="phone" type="tel" placeholder="e.g. 09xx xxx xxxx">
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label" for="street">Street</label>
-                      <input class="form-control" id="street" type="text" placeholder="House no., street" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="barangay">Barangay</label>
-                      <select class="form-select" id="barangay">
-                        <option value="">Select barangay</option>
-                        {% for barangay in barangay_options %}
-                          <option value="{{ barangay }}">{{ barangay }}</option>
-                        {% endfor %}
-                      </select>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="city">City</label>
-                      <input class="form-control" id="city" type="text" placeholder="City" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="province">Province/State</label>
-                      <input class="form-control" id="province" type="text" placeholder="Province or state" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label" for="postalCode">Postal Code</label>
-                      <input class="form-control" id="postalCode" type="text" placeholder="Postal code" required>
-                    </div>
+                  <div class="col-md-4">
+                    <label class="form-label" for="latInput">Latitude</label>
+                    <input
+                      class="form-control"
+                      id="latInput"
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 9.3639"
+                      required
+                    >
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label" for="lngInput">Longitude</label>
+                    <input
+                      class="form-control"
+                      id="lngInput"
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 122.8072"
+                      required
+                    >
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label" for="mapsUrl">Google Maps URL</label>
+                    <input
+                      class="form-control"
+                      id="mapsUrl"
+                      type="url"
+                      placeholder="https://maps.google.com/?q=lat,lng"
+                      required
+                    >
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="mapAddress">Selected Address</label>
+                    <input
+                      class="form-control"
+                      id="mapAddress"
+                      type="text"
+                      placeholder="Address will appear after you drop a pin"
+                      readonly
+                    >
                   </div>
                 </div>
-                <div class="col-12">
-                  <label class="form-label" for="dogMedia">Dog Photo or Video</label>
-                  <input class="form-control" id="dogMedia" type="file" accept="image/*,video/*">
-                  <div class="form-text">
-                    Upload a clear image or short video to help staff identify the dog.
+              </div>
+
+              <div class="report-step d-none" data-report-step="3" data-step-label="Report details">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label" for="reportType">Report Type</label>
+                    <select class="form-select" id="reportType" required>
+                      {% for value, label in report_type_choices %}
+                        <option value="{{ value }}">
+                          {{ label }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea
+                      class="form-control"
+                      id="description"
+                      rows="3"
+                      placeholder="Describe the dog's condition or situation"
+                      required
+                    ></textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="dogMedia">Upload Dog Photo or Video (Optional)</label>
+                    <input class="form-control" id="dogMedia" type="file" accept="image/*,video/*">
+                    <div class="form-text">
+                      Adding media helps others identify the dog faster.
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div class="profile-form-actions">
-                <button class="btn btn-primary profile-btn" type="submit" id="submitBtn">
+                <button class="btn btn-outline-secondary profile-btn" type="button" id="prevBtn">
+                  Back
+                </button>
+                <button class="btn btn-primary profile-btn" type="button" id="nextBtn">
+                  Next
+                </button>
+                <button class="btn btn-primary profile-btn d-none" type="submit" id="submitBtn">
                   Submit Report
                 </button>
-                <span class="profile-form-hint">Your report will be reviewed by staff.</span>
+                <span class="profile-form-hint" id="stepHint">Step 1 of 3.</span>
               </div>
             </form>
+
+            <div class="report-summary d-none" id="reportSummary">
+              <hr class="my-4">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                  <h3 class="h6 mb-1">Submission Confirmation</h3>
+                  <div class="small text-muted">Report ID: <span id="summaryId">-</span></div>
+                </div>
+                <span class="status-pill status-pill--warning" id="summaryStatus">Pending</span>
+              </div>
+              <div class="row g-2 mt-2">
+                <div class="col-md-6">
+                  <div class="small text-muted">Report Type</div>
+                  <div class="fw-semibold" id="summaryType">-</div>
+                </div>
+                <div class="col-md-6">
+                  <div class="small text-muted">Contact</div>
+                  <div class="fw-semibold" id="summaryContact">-</div>
+                  <div class="small text-muted" id="summaryPhone"></div>
+                  <div class="small text-muted" id="summaryEmail"></div>
+                </div>
+                <div class="col-12">
+                  <div class="small text-muted">Manual Address</div>
+                  <div class="fw-semibold" id="summaryAddress">-</div>
+                  <div class="small text-muted" id="summaryAddressNotes"></div>
+                </div>
+                <div class="col-12">
+                  <div class="small text-muted">Description</div>
+                  <div class="fw-semibold" id="summaryDescription">-</div>
+                </div>
+              </div>
+              <div class="report-summary-map mt-3">
+                <iframe
+                  id="summaryMap"
+                  title="Map preview"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+              <div class="report-summary-media mt-3" id="summaryMedia"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
+  {% if google_maps_api_key %}
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+  {% endif %}
   <script src="{% static 'js/report_form.js' %}"></script>
 {% endblock %}

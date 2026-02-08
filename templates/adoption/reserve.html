@@ -10,12 +10,14 @@
           <div class="card-body p-4">
             <h2 class="h5 mb-2">Reserve Adoption</h2>
             <p class="text-muted">Dog: {{ dog.name|default:"Unnamed Dog" }}</p>
+            {% if reclaim_deadline %}
+              <div class="alert alert-info small">
+                This dog is still under the reclaim window. If unclaimed by
+                {{ reclaim_deadline|date:"M d, Y H:i" }}, you will be notified to confirm adoption.
+              </div>
+            {% endif %}
             <form method="post">
               {% csrf_token %}
-              <div class="mb-3">
-                <label class="form-label">Preferred reservation date</label>
-                {{ form.reservation_date }}
-              </div>
               <button class="btn btn-primary w-100" type="submit">Submit Request</button>
             </form>
           </div>

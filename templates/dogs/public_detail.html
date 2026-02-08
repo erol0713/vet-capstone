@@ -16,7 +16,6 @@
           <div class="col-md-6">
             <p class="mb-1"><strong>Status:</strong> {{ dog.get_status_display }}</p>
             <p class="mb-1"><strong>Barangay:</strong> {{ dog.barangay|default:"Not set" }}</p>
-            <p class="mb-1"><strong>Kennel Slot:</strong> {{ dog.kennel_slot|default:"Not set" }}</p>
             <p class="mb-1"><strong>Captured at:</strong> {{ dog.capture_datetime|default:"-" }}</p>
             <p class="mb-1"><strong>Surrendered at:</strong> {{ dog.surrender_datetime|default:"-" }}</p>
           </div>
@@ -24,7 +23,6 @@
             <p class="mb-1"><strong>Sex:</strong> {{ dog.sex|default:"Not set" }}</p>
             <p class="mb-1"><strong>Age Estimate:</strong> {{ dog.age_estimate|default:"Not set" }}</p>
             <p class="mb-1"><strong>Color:</strong> {{ dog.color|default:"Not set" }}</p>
-            <p class="mb-1"><strong>GPS:</strong> {{ dog.gps_coordinates|default:"Not set" }}</p>
           </div>
         </div>
         <div class="mt-3">
@@ -32,7 +30,7 @@
         </div>
         <div class="mt-4 d-flex gap-2 flex-wrap">
           {% if request.user.is_authenticated %}
-            {% if can_adopt %}
+            {% if can_adopt or can_reserve %}
               <a class="btn btn-primary" href="{% url 'adoption_reserve' dog.pk %}">
                 Reserve Adoption
               </a>

@@ -35,6 +35,22 @@ def test_staff_can_access_registered_by_owner(client):
     assert response.status_code == 200
 
 
+def test_staff_can_view_registered_detail(client):
+    staff = create_user('STAFF')
+    owner = create_user('OWNER')
+    dog = Dog.objects.create(
+        name='OwnedDog',
+        status=Dog.Status.RELEASED,
+        owner=owner,
+    )
+    client.force_login(staff)
+
+    response = client.get(f'/staff/dogs/registered/{dog.id}/')
+
+    assert response.status_code == 200
+    assert b'OwnedDog' in response.content
+
+
 def test_staff_can_access_vaccination_requests(client):
     staff = create_user('STAFF')
     client.force_login(staff)
@@ -64,6 +80,21 @@ def test_owner_blocked_from_registered_by_owner(client):
     assert b'permission' in response.content.lower()
 
 
+def test_owner_blocked_from_registered_detail(client):
+    owner = create_user('OWNER')
+    dog = Dog.objects.create(
+        name='OwnedDog',
+        status=Dog.Status.RELEASED,
+        owner=owner,
+    )
+    client.force_login(owner)
+
+    response = client.get(f'/staff/dogs/registered/{dog.id}/', follow=True)
+
+    assert response.status_code == 200
+    assert b'permission' in response.content.lower()
+
+
 def test_owner_blocked_from_vaccination_requests(client):
     owner = create_user('OWNER')
     client.force_login(owner)
@@ -82,7 +113,7 @@ def test_staff_can_create_dog(client):
         '/staff/dogs/new/',
         {
             'name': 'Scout',
-            'status': 'IMPOUNDED',
+            'status': 'AVAILABLE',
             'barangay': 'Poblacion',
         },
         follow=True,
@@ -131,7 +162,7 @@ def test_intake_without_surrender_sets_impounded(client):
         '/staff/dogs/new/',
         {
             'name': 'NoDates',
-            'status': 'ADOPTED',
+            'status': 'AVAILABLE',
             'barangay': 'Poblacion',
         },
         follow=True,
@@ -150,7 +181,7 @@ def test_intake_with_surrender_sets_available(client):
         '/staff/dogs/new/',
         {
             'name': 'Surrendered',
-            'status': 'ADOPTED',
+            'status': 'AVAILABLE',
             'surrender_datetime': '2026-01-30T10:00',
             'barangay': 'Poblacion',
         },
@@ -171,7 +202,7 @@ def test_edit_intake_enforces_status(client):
         f'/staff/dogs/{dog.id}/edit/',
         {
             'name': 'EditMe',
-            'status': 'ADOPTED',
+            'status': 'AVAILABLE',
             'capture_datetime': '2026-01-30T10:00',
             'barangay': 'Poblacion',
         },
@@ -183,7 +214,7 @@ def test_edit_intake_enforces_status(client):
     assert dog.status == Dog.Status.IMPOUNDED
 
 
-def test_edit_registered_dog_keeps_status(client):
+def test_edit_registered_dog_rejects_disallowed_status(client):
     staff = create_user('STAFF')
     owner = create_user('OWNER')
     dog = Dog.objects.create(
@@ -207,6 +238,7 @@ def test_edit_registered_dog_keeps_status(client):
     dog.refresh_from_db()
     assert response.status_code == 200
     assert dog.status == Dog.Status.RELEASED
+    assert 'status' in response.context['form'].errors
 
 
 def test_staff_setting_vaccination_schedule_notifies_owner(client):

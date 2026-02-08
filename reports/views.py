@@ -1,16 +1,22 @@
 import json
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.db.models import Case, IntegerField, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.urls import reverse
 
 from notifications.models import Notification
 
 from .forms import BAYAWAN_BARANGAYS, PublicReportForm, StaffReportUpdateForm
 from .models import Report
-from users.decorators import role_required
+from users.decorators import role_required, verified_required
+from users.models import CustomUser
 
 
 def public_report(request):
@@ -30,6 +36,7 @@ def public_report(request):
             'form': form,
             'report_type_choices': report_type_choices,
             'barangay_options': BAYAWAN_BARANGAYS,
+            'google_maps_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', ''),
         },
     )
 
@@ -37,7 +44,19 @@ def public_report(request):
 @login_required
 @role_required('ADMIN', 'STAFF')
 def staff_list(request):
-    reports = Report.objects.order_by('-created_at')
+    reports = (
+        Report.objects.annotate(
+            is_completed=Case(
+                When(
+                    status__in=(Report.Status.RESOLVED, Report.Status.CLOSED),
+                    then=Value(1),
+                ),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by('is_completed', '-created_at')
+    )
     return render(request, 'reports/staff_list.html', {'reports': reports})
 
 
@@ -72,6 +91,7 @@ def update_status(request, pk: int):
                 user=report.reported_by,
                 title='Report Status Update',
                 message=f'Your report #{report.id} is now {report.get_status_display()}.',
+                action_url=reverse('reports_public_list'),
             )
         messages.success(request, 'Report updated.')
     return redirect('reports_staff_detail', pk=report.id)
@@ -80,6 +100,22 @@ def update_status(request, pk: int):
 def public_list(request):
     reports = Report.objects.order_by('-created_at')
     return render(request, 'reports/public_list.html', {'reports': reports})
+
+
+@require_POST
+@verified_required
+def public_delete(request, pk: int):
+    report = get_object_or_404(Report, pk=pk)
+    is_staff = request.user.role in (CustomUser.Roles.ADMIN, CustomUser.Roles.STAFF)
+    if not is_staff and report.reported_by_id != request.user.id:
+        messages.error(request, 'You can only delete your own reports.')
+        return redirect('reports_public_list')
+
+    if report.photo:
+        report.photo.delete(save=False)
+    report.delete()
+    messages.success(request, 'Report deleted.')
+    return redirect('reports_public_list')
 
 
 def _parse_float(value):
@@ -124,12 +160,14 @@ def api_reports(request):
     report_type_map = {
         'STRAY': Report.ReportType.STRAY,
         'SURRENDER': Report.ReportType.SURRENDER,
-        'INCIDENT': Report.ReportType.INCIDENT,
+        'DANGEROUS': Report.ReportType.DANGEROUS,
+        'OTHER': Report.ReportType.OTHER,
+        'INCIDENT': Report.ReportType.DANGEROUS,
     }
     if not report_type_raw:
         errors['report_type'] = 'Report type is required.'
     elif report_type_raw not in report_type_map:
-        errors['report_type'] = 'Report type must be incident, stray, or surrender.'
+        errors['report_type'] = 'Report type must be surrender, dangerous, stray, or other.'
 
     description = (payload.get('description') or '').strip()
     if not description:
@@ -142,6 +180,7 @@ def api_reports(request):
     location_payload = payload.get('location') if isinstance(payload.get('location'), dict) else {}
     contact_name = (payload.get('contact_name') or '').strip()
     contact_phone = (payload.get('contact_phone') or '').strip()
+    contact_email = (payload.get('contact_email') or '').strip()
 
     latitude = None
     longitude = None
@@ -164,15 +203,29 @@ def api_reports(request):
         errors['maps_url'] = 'Google Maps URL is required.'
 
     address = location_payload.get('address') if isinstance(location_payload.get('address'), dict) else {}
+    if address and not address.get('barangay') and address.get('area'):
+        address['barangay'] = address.get('area')
     if not address:
         errors['address'] = 'Address details are required.'
     else:
-        required_fields = ('street', 'city', 'province', 'postal_code')
+        required_fields = ('street', 'city', 'barangay')
+        labels = {
+            'street': 'Street address',
+            'city': 'City',
+            'barangay': 'Area / Neighborhood',
+        }
         for field in required_fields:
             if not (address.get(field) or '').strip():
-                errors[field] = f'{field.replace("_", " ").title()} is required.'
+                errors[field] = f'{labels[field]} is required.'
     if not contact_name:
         errors['full_name'] = 'Full name is required for manual address.'
+    if not contact_phone:
+        errors['contact_phone'] = 'Phone number is required.'
+    if contact_email:
+        try:
+            validate_email(contact_email)
+        except ValidationError:
+            errors['contact_email'] = 'Email address is invalid.'
 
     if errors:
         return JsonResponse({'success': False, 'errors': errors}, status=400)
@@ -190,6 +243,7 @@ def api_reports(request):
         description=description,
         contact_name=contact_name,
         contact_phone=contact_phone,
+        contact_email=contact_email,
         location_method=location_method_value,
         latitude=latitude,
         longitude=longitude,

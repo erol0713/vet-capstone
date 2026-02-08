@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 
 from notifications.models import Notification
@@ -26,7 +27,7 @@ def test_verified_user_can_reserve(client):
     dog = Dog.objects.create(status=Dog.Status.AVAILABLE)
     client.force_login(user)
 
-    response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {'reservation_date': '2026-02-01'})
+    response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
 
     assert response.status_code == 302
     assert AdoptionReservation.objects.filter(dog=dog, requester=user).exists()
@@ -41,6 +42,48 @@ def test_unverified_user_blocked_from_reserve(client):
 
     assert response.status_code == 200
     assert b'verification' in response.content.lower()
+
+
+def test_verified_user_can_reserve_impounded_dog(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(
+        status=Dog.Status.IMPOUNDED,
+        capture_datetime=timezone.now(),
+    )
+    client.force_login(user)
+
+    response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
+
+    assert response.status_code == 302
+    assert AdoptionReservation.objects.filter(dog=dog, requester=user).exists()
+
+
+def test_adoption_request_blocked_when_active_exists(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(status=Dog.Status.AVAILABLE)
+    AdoptionReservation.objects.create(dog=dog, requester=user)
+    client.force_login(user)
+
+    response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
+
+    assert response.status_code == 302
+    assert AdoptionReservation.objects.filter(dog=dog, requester=user).count() == 1
+
+
+def test_adoption_request_allowed_after_rejection(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(status=Dog.Status.AVAILABLE)
+    AdoptionReservation.objects.create(
+        dog=dog,
+        requester=user,
+        status=AdoptionReservation.Status.REJECTED,
+    )
+    client.force_login(user)
+
+    response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
+
+    assert response.status_code == 302
+    assert AdoptionReservation.objects.filter(dog=dog, requester=user).count() == 2
 
 
 def test_staff_can_complete_adoption(client):
@@ -75,14 +118,65 @@ def test_verified_user_can_request_reclaim_for_available_captured_dog(client):
     user = create_user('OWNER', verified=True)
     dog = Dog.objects.create(status=Dog.Status.AVAILABLE, capture_datetime=timezone.now())
     client.force_login(user)
+    proof = SimpleUploadedFile('proof.pdf', b'proof', content_type='application/pdf')
 
     response = client.post(
         f'/adoption/dogs/{dog.id}/reclaim/',
-        {'reclaim_date': '2026-02-01'},
+        {'ownership_proof': proof},
     )
 
     assert response.status_code == 302
     assert ReclaimRequest.objects.filter(dog=dog, owner=user).exists()
+
+
+def test_reclaim_request_requires_ownership_proof(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(status=Dog.Status.AVAILABLE, capture_datetime=timezone.now())
+    client.force_login(user)
+
+    response = client.post(
+        f'/adoption/dogs/{dog.id}/reclaim/',
+        {},
+    )
+
+    assert response.status_code == 200
+    assert not ReclaimRequest.objects.filter(dog=dog, owner=user).exists()
+
+
+def test_reclaim_request_blocked_when_active_exists(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(status=Dog.Status.AVAILABLE, capture_datetime=timezone.now())
+    ReclaimRequest.objects.create(dog=dog, owner=user)
+    client.force_login(user)
+    proof = SimpleUploadedFile('proof.pdf', b'proof', content_type='application/pdf')
+
+    response = client.post(
+        f'/adoption/dogs/{dog.id}/reclaim/',
+        {'ownership_proof': proof},
+    )
+
+    assert response.status_code == 302
+    assert ReclaimRequest.objects.filter(dog=dog, owner=user).count() == 1
+
+
+def test_reclaim_request_allowed_after_rejection(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(status=Dog.Status.AVAILABLE, capture_datetime=timezone.now())
+    ReclaimRequest.objects.create(
+        dog=dog,
+        owner=user,
+        status=ReclaimRequest.Status.REJECTED,
+    )
+    client.force_login(user)
+    proof = SimpleUploadedFile('proof.pdf', b'proof', content_type='application/pdf')
+
+    response = client.post(
+        f'/adoption/dogs/{dog.id}/reclaim/',
+        {'ownership_proof': proof},
+    )
+
+    assert response.status_code == 302
+    assert ReclaimRequest.objects.filter(dog=dog, owner=user).count() == 2
 
 
 def test_reclaim_blocked_for_adopted_dog(client):
@@ -103,14 +197,81 @@ def test_adoption_request_notifies_staff_and_admin(client):
     dog = Dog.objects.create(status=Dog.Status.AVAILABLE)
     client.force_login(owner)
 
-    response = client.post(
-        f'/adoption/dogs/{dog.id}/reserve/',
-        {'reservation_date': '2026-02-01'},
-    )
+    response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
 
     assert response.status_code == 302
     assert Notification.objects.filter(user=admin, title='New adoption request').exists()
     assert Notification.objects.filter(user=staff, title='New adoption request').exists()
+
+
+def test_reservation_notifies_after_reclaim_window(client):
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(
+        status=Dog.Status.IMPOUNDED,
+        capture_datetime=timezone.now() - timezone.timedelta(days=4),
+    )
+    reservation = AdoptionReservation.objects.create(dog=dog, requester=user)
+    client.force_login(user)
+
+    response = client.get('/adoption/my/', follow=True)
+
+    reservation.refresh_from_db()
+    assert response.status_code == 200
+    assert reservation.eligibility_notified_at is not None
+    assert Notification.objects.filter(
+        user=user,
+        title__icontains='reservation ready',
+    ).exists()
+
+
+def test_user_can_confirm_adoption_after_window(client):
+    admin = create_user('ADMIN', verified=True)
+    user = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(
+        status=Dog.Status.IMPOUNDED,
+        capture_datetime=timezone.now() - timezone.timedelta(days=4),
+    )
+    reservation = AdoptionReservation.objects.create(dog=dog, requester=user)
+    client.force_login(user)
+
+    response = client.post(f'/adoption/reservations/{reservation.id}/confirm/', follow=True)
+
+    reservation.refresh_from_db()
+    assert response.status_code == 200
+    assert reservation.confirmed_at is not None
+    assert Notification.objects.filter(
+        user=admin,
+        title__icontains='reservation confirmed',
+    ).exists()
+
+
+def test_staff_can_schedule_adoption_after_confirmation(client):
+    staff = create_user('STAFF', verified=True)
+    owner = create_user('OWNER', verified=True)
+    dog = Dog.objects.create(
+        status=Dog.Status.IMPOUNDED,
+        capture_datetime=timezone.now() - timezone.timedelta(days=4),
+    )
+    reservation = AdoptionReservation.objects.create(
+        dog=dog,
+        requester=owner,
+        confirmed_at=timezone.now(),
+    )
+    client.force_login(staff)
+
+    response = client.post(
+        f'/staff/adoption/{reservation.id}/schedule/',
+        {'appointment_date': '2026-02-10', 'appointment_time': '10:00'},
+        follow=True,
+    )
+
+    reservation.refresh_from_db()
+    assert response.status_code == 200
+    assert reservation.appointment_schedule is not None
+    assert Notification.objects.filter(
+        user=owner,
+        title__icontains='appointment scheduled',
+    ).exists()
 
 
 def test_reclaim_request_notifies_staff_and_admin(client):
@@ -119,10 +280,11 @@ def test_reclaim_request_notifies_staff_and_admin(client):
     owner = create_user('OWNER', verified=True)
     dog = Dog.objects.create(status=Dog.Status.IMPOUNDED, capture_datetime=timezone.now())
     client.force_login(owner)
+    proof = SimpleUploadedFile('proof.pdf', b'proof', content_type='application/pdf')
 
     response = client.post(
         f'/adoption/dogs/{dog.id}/reclaim/',
-        {'reclaim_date': '2026-02-01'},
+        {'ownership_proof': proof},
     )
 
     assert response.status_code == 302

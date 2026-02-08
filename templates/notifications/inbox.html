@@ -17,7 +17,10 @@
     <div class="card shadow-sm border-0">
       <div class="list-group list-group-flush">
         {% for item in items %}
-          <div class="list-group-item d-flex justify-content-between align-items-start">
+          <a
+            class="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
+            href="{% url 'notifications_read' item.pk %}"
+          >
             <div>
               <div class="fw-semibold">{{ item.title }}</div>
               <div class="text-muted small">{{ item.message }}</div>
@@ -25,14 +28,12 @@
             </div>
             <div>
               {% if not item.is_read %}
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'notifications_read' item.pk %}">
-                  Mark read
-                </a>
+                <span class="badge bg-primary">New</span>
               {% else %}
                 <span class="badge bg-light text-muted">Read</span>
               {% endif %}
             </div>
-          </div>
+          </a>
         {% empty %}
           <div class="list-group-item text-muted">No notifications yet.</div>
         {% endfor %}

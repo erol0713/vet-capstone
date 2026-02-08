@@ -10,17 +10,50 @@
   const latInput = document.getElementById('latInput');
   const lngInput = document.getElementById('lngInput');
   const mapsUrl = document.getElementById('mapsUrl');
+  const mapAddress = document.getElementById('mapAddress');
+  const mapSearch = document.getElementById('mapSearch');
+  const mapFallback = document.getElementById('mapFallback');
+  const mapContainer = document.getElementById('reportMap');
+  const mapPreview = document.getElementById('mapPreview');
+  const mapPreviewFrame = document.getElementById('mapPreviewFrame');
   const geoBtn = document.getElementById('geoBtn');
   const dogMedia = document.getElementById('dogMedia');
 
   const fullName = document.getElementById('fullName');
   const phone = document.getElementById('phone');
+  const email = document.getElementById('email');
   const street = document.getElementById('street');
   const barangay = document.getElementById('barangay');
   const city = document.getElementById('city');
-  const province = document.getElementById('province');
-  const postalCode = document.getElementById('postalCode');
+  const addressNotes = document.getElementById('addressNotes');
 
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const stepHint = document.getElementById('stepHint');
+  const stepElements = Array.from(document.querySelectorAll('[data-report-step]'));
+  const stepIndicators = Array.from(document.querySelectorAll('[data-step-indicator]'));
+  const totalSteps = stepElements.length || 1;
+  let currentStep = 1;
+
+  const summaryCard = document.getElementById('reportSummary');
+  const summaryId = document.getElementById('summaryId');
+  const summaryStatus = document.getElementById('summaryStatus');
+  const summaryType = document.getElementById('summaryType');
+  const summaryContact = document.getElementById('summaryContact');
+  const summaryPhone = document.getElementById('summaryPhone');
+  const summaryEmail = document.getElementById('summaryEmail');
+  const summaryAddress = document.getElementById('summaryAddress');
+  const summaryAddressNotes = document.getElementById('summaryAddressNotes');
+  const summaryDescription = document.getElementById('summaryDescription');
+  const summaryMap = document.getElementById('summaryMap');
+  const summaryMedia = document.getElementById('summaryMedia');
+
+  const defaultCenter = { lat: 9.3639, lng: 122.8072 };
+  let mapInstance = null;
+  let mapMarker = null;
+  let mapGeocoder = null;
+  let hasUserSelected = false;
+  let mapAvailable = false;
 
   const showAlert = (type, messages) => {
     if (!alertBox) return;
@@ -39,14 +72,6 @@
     alertBox.textContent = '';
   };
 
-  const updateMapsUrl = () => {
-    const lat = parseFloat(latInput.value);
-    const lng = parseFloat(lngInput.value);
-    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
-      mapsUrl.value = `https://maps.google.com/?q=${lat},${lng}`;
-    }
-  };
-
   const parseLatLngFromUrl = (value) => {
     if (!value) return null;
     const patterns = [
@@ -57,23 +82,245 @@
     for (const pattern of patterns) {
       const match = value.match(pattern);
       if (match) {
-        return { lat: match[1], lng: match[2] };
+        return { lat: Number(match[1]), lng: Number(match[2]) };
       }
     }
     return null;
   };
 
+  const updateMapsUrl = (lat, lng) => {
+    if (!mapsUrl) return;
+    mapsUrl.value = `https://maps.google.com/?q=${lat},${lng}`;
+  };
+
+  const setMapAddress = (text) => {
+    if (!mapAddress) return;
+    mapAddress.value = text || '';
+  };
+
+  const updateLatLngInputs = (lat, lng) => {
+    if (latInput) latInput.value = lat.toFixed(6);
+    if (lngInput) lngInput.value = lng.toFixed(6);
+    updateMapsUrl(lat, lng);
+  };
+
+  const showMapPreview = (lat, lng) => {
+    if (!mapPreview || !mapPreviewFrame) return;
+    mapPreviewFrame.src = `https://maps.google.com/maps?q=${lat},${lng}&output=embed`;
+    mapPreview.classList.remove('d-none');
+  };
+
+  const hideMapPreview = () => {
+    if (!mapPreview || !mapPreviewFrame) return;
+    mapPreviewFrame.removeAttribute('src');
+    mapPreview.classList.add('d-none');
+  };
+
+  const updateMapFromLatLng = (lat, lng, addressText = '', markSelected = true) => {
+    if (markSelected) {
+      updateLatLngInputs(lat, lng);
+    } else {
+      if (latInput) latInput.value = '';
+      if (lngInput) lngInput.value = '';
+      if (mapsUrl) mapsUrl.value = '';
+      if (!addressText) setMapAddress('');
+    }
+    if (addressText) setMapAddress(addressText);
+    if (markSelected) hasUserSelected = true;
+    if (!mapAvailable && markSelected) {
+      showMapPreview(lat, lng);
+    }
+    if (!markSelected) {
+      hideMapPreview();
+    }
+    if (mapInstance && mapMarker) {
+      const position = { lat, lng };
+      mapMarker.setPosition(position);
+      mapInstance.setCenter(position);
+    }
+    if (mapGeocoder && mapInstance && !addressText && markSelected) {
+      mapGeocoder.geocode({ location: { lat, lng } }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+          setMapAddress(results[0].formatted_address);
+        }
+      });
+    }
+  };
+
+  const initMap = () => {
+    if (!mapContainer || !window.google || !window.google.maps) {
+      if (mapFallback) mapFallback.classList.remove('d-none');
+      if (mapContainer) mapContainer.classList.add('d-none');
+      return false;
+    }
+
+    mapInstance = new window.google.maps.Map(mapContainer, {
+      center: defaultCenter,
+      zoom: 14,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+    });
+
+    mapMarker = new window.google.maps.Marker({
+      position: defaultCenter,
+      map: mapInstance,
+      draggable: true,
+    });
+
+    mapGeocoder = new window.google.maps.Geocoder();
+
+    if (mapSearch) {
+      const searchBox = new window.google.maps.places.SearchBox(mapSearch);
+      mapInstance.addListener('bounds_changed', () => {
+        searchBox.setBounds(mapInstance.getBounds());
+      });
+      searchBox.addListener('places_changed', () => {
+        const places = searchBox.getPlaces();
+        if (!places || !places.length) return;
+        const place = places[0];
+        if (!place.geometry || !place.geometry.location) return;
+        const location = place.geometry.location;
+        updateMapFromLatLng(location.lat(), location.lng(), place.formatted_address || '');
+        if (place.geometry.viewport) {
+          mapInstance.fitBounds(place.geometry.viewport);
+        } else {
+          mapInstance.setZoom(16);
+          mapInstance.setCenter(location);
+        }
+      });
+    }
+
+    mapInstance.addListener('click', (event) => {
+      if (!event || !event.latLng) return;
+      updateMapFromLatLng(event.latLng.lat(), event.latLng.lng());
+    });
+
+    mapMarker.addListener('dragend', (event) => {
+      if (!event || !event.latLng) return;
+      updateMapFromLatLng(event.latLng.lat(), event.latLng.lng());
+    });
+
+    updateMapFromLatLng(defaultCenter.lat, defaultCenter.lng, '', false);
+    return true;
+  };
+
+  const refreshMap = () => {
+    if (!mapInstance || !window.google || !window.google.maps) return;
+    window.google.maps.event.trigger(mapInstance, 'resize');
+    if (mapMarker) {
+      mapInstance.setCenter(mapMarker.getPosition());
+    }
+  };
+
+  const getStepLabel = (step) => {
+    const stepEl = stepElements.find((item) => Number(item.dataset.reportStep) === step);
+    return stepEl ? stepEl.dataset.stepLabel || '' : '';
+  };
+
+  const updateNextLabel = () => {
+    if (!nextBtn) return;
+    nextBtn.textContent = 'Next';
+  };
+
+  const setStep = (step) => {
+    currentStep = Math.min(Math.max(step, 1), totalSteps);
+    stepElements.forEach((item) => {
+      const stepNumber = Number(item.dataset.reportStep);
+      item.classList.toggle('d-none', stepNumber !== currentStep);
+    });
+    stepIndicators.forEach((item) => {
+      const stepNumber = Number(item.dataset.stepIndicator);
+      item.classList.toggle('is-active', stepNumber === currentStep);
+      item.classList.toggle('is-complete', stepNumber < currentStep);
+    });
+    if (prevBtn) prevBtn.disabled = currentStep === 1;
+    if (nextBtn) nextBtn.classList.toggle('d-none', currentStep === totalSteps);
+    if (submitBtn) submitBtn.classList.toggle('d-none', currentStep !== totalSteps);
+    updateNextLabel();
+    if (stepHint) {
+      stepHint.textContent = `Step ${currentStep} of ${totalSteps}.`;
+    }
+    if (currentStep === 2) {
+      refreshMap();
+    }
+    if (form.scrollIntoView) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const validateStep = (step) => {
+    const errors = [];
+
+    if (step === 1) {
+      if (!fullName.value.trim()) {
+        errors.push('Full name is required.');
+      }
+      if (!phone.value.trim()) {
+        errors.push('Phone number is required.');
+      }
+      if (email.value.trim() && email.checkValidity && !email.checkValidity()) {
+        errors.push('Email address must be valid.');
+      }
+      if (!street.value.trim()) {
+        errors.push('Street address is required.');
+      }
+      if (!city.value.trim()) {
+        errors.push('City is required.');
+      }
+      if (!barangay.value.trim()) {
+        errors.push('Area or neighborhood is required.');
+      }
+    }
+
+    if (step === 2) {
+      const latValue = parseFloat(latInput.value);
+      const lngValue = parseFloat(lngInput.value);
+      if (!hasUserSelected || Number.isNaN(latValue) || Number.isNaN(lngValue)) {
+        errors.push('Select a location on the map to set coordinates.');
+      }
+      if (!mapsUrl.value.trim()) {
+        if (!Number.isNaN(latValue) && !Number.isNaN(lngValue)) {
+          updateMapsUrl(latValue, lngValue);
+        } else {
+          errors.push('Google Maps URL is required.');
+        }
+      }
+    }
+
+    if (step === 3) {
+      if (!reportType.value.trim()) {
+        errors.push('Report type is required.');
+      }
+      if (!description.value.trim()) {
+        errors.push('Description is required.');
+      }
+    }
+
+    if (errors.length) {
+      showAlert('danger', errors);
+      return false;
+    }
+    return true;
+  };
+
   if (latInput && lngInput) {
-    latInput.addEventListener('input', updateMapsUrl);
-    lngInput.addEventListener('input', updateMapsUrl);
+    const handleCoordinateChange = () => {
+      const latValue = parseFloat(latInput.value);
+      const lngValue = parseFloat(lngInput.value);
+      if (!Number.isNaN(latValue) && !Number.isNaN(lngValue)) {
+        updateMapFromLatLng(latValue, lngValue, '', true);
+      }
+    };
+    latInput.addEventListener('input', handleCoordinateChange);
+    lngInput.addEventListener('input', handleCoordinateChange);
   }
 
   if (mapsUrl) {
     mapsUrl.addEventListener('input', () => {
       const parsed = parseLatLngFromUrl(mapsUrl.value);
       if (parsed) {
-        latInput.value = parsed.lat;
-        lngInput.value = parsed.lng;
+        updateMapFromLatLng(parsed.lat, parsed.lng, '', true);
       }
     });
   }
@@ -88,16 +335,14 @@
         geoBtn.textContent = 'Locating...';
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            latInput.value = position.coords.latitude.toFixed(6);
-            lngInput.value = position.coords.longitude.toFixed(6);
-            updateMapsUrl();
+            updateMapFromLatLng(position.coords.latitude, position.coords.longitude, '', true);
             geoBtn.disabled = false;
-            geoBtn.textContent = 'Use my current location';
+            geoBtn.textContent = 'Use current location';
           },
           () => {
             showAlert('danger', 'Unable to access your location.');
             geoBtn.disabled = false;
-            geoBtn.textContent = 'Use my current location';
+            geoBtn.textContent = 'Use current location';
           }
         );
       });
@@ -111,74 +356,106 @@
     return '';
   };
 
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      clearAlert();
+      setStep(currentStep - 1);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      clearAlert();
+      if (validateStep(currentStep)) {
+        setStep(currentStep + 1);
+      }
+    });
+  }
+
+  mapAvailable = initMap();
+  setStep(currentStep);
+
+  const updateSummary = (payload, reportId) => {
+    if (!summaryCard) return;
+    if (summaryId) summaryId.textContent = reportId || '-';
+    if (summaryStatus) summaryStatus.textContent = 'Pending';
+    if (summaryType && reportType) {
+      const selectedOption = reportType.options[reportType.selectedIndex];
+      summaryType.textContent = selectedOption ? selectedOption.textContent : reportType.value;
+    }
+    if (summaryContact) summaryContact.textContent = payload.contact_name || '-';
+    if (summaryPhone) summaryPhone.textContent = payload.contact_phone || '';
+    if (summaryEmail) summaryEmail.textContent = payload.contact_email || '';
+    if (summaryAddress) {
+      const address = payload.location.address || {};
+      const parts = [address.street, address.barangay, address.city].filter((part) => part);
+      summaryAddress.textContent = parts.length ? parts.join(', ') : '-';
+    }
+    if (summaryAddressNotes) {
+      summaryAddressNotes.textContent = payload.location.address?.notes || '';
+    }
+    if (summaryDescription) summaryDescription.textContent = payload.description || '-';
+    if (summaryMap && payload.location.lat && payload.location.lng) {
+      const lat = payload.location.lat;
+      const lng = payload.location.lng;
+      summaryMap.src = `https://maps.google.com/maps?q=${lat},${lng}&output=embed`;
+    }
+    if (summaryMedia) {
+      summaryMedia.innerHTML = '';
+      if (dogMedia && dogMedia.files && dogMedia.files[0]) {
+        const file = dogMedia.files[0];
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith('video')) {
+          const video = document.createElement('video');
+          video.src = url;
+          video.controls = true;
+          summaryMedia.appendChild(video);
+        } else if (file.type.startsWith('image')) {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = 'Reported dog media';
+          summaryMedia.appendChild(img);
+        }
+      }
+    }
+    summaryCard.classList.remove('d-none');
+  };
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     clearAlert();
 
-    const errors = [];
+    for (let step = 1; step <= totalSteps; step += 1) {
+      if (!validateStep(step)) {
+        setStep(step);
+        return;
+      }
+    }
+
     const reportTypeValue = reportType.value.trim();
-    if (!reportTypeValue) {
-      errors.push('Report type is required.');
-    }
-
     const descriptionValue = description.value.trim();
-    if (!descriptionValue) {
-      errors.push('Description is required.');
-    }
-
-    let location = { lat: null, lng: null, maps_url: null, address: null };
-    let contactName = '';
-    let contactPhone = '';
 
     const latValue = parseFloat(latInput.value);
     const lngValue = parseFloat(lngInput.value);
-    if (Number.isNaN(latValue) || Number.isNaN(lngValue)) {
-      errors.push('Latitude and longitude are required for Google Maps.');
-    } else {
-      location.lat = latValue;
-      location.lng = lngValue;
-      location.maps_url = mapsUrl.value.trim() || `https://maps.google.com/?q=${latValue},${lngValue}`;
-    }
-    if (!mapsUrl.value.trim()) {
-      errors.push('Google Maps URL is required.');
-    }
-
-    contactName = fullName.value.trim();
-    contactPhone = phone.value.trim();
-    if (!contactName) {
-      errors.push('Full name is required for manual address.');
-    }
-
-    const address = {
-      street: street.value.trim(),
-      barangay: barangay.value.trim(),
-      city: city.value.trim(),
-      province: province.value.trim(),
-      postal_code: postalCode.value.trim(),
-    };
-
-    const requiredFields = ['street', 'city', 'province', 'postal_code'];
-    requiredFields.forEach((field) => {
-      if (!address[field]) {
-        errors.push(`${field.replace('_', ' ')} is required.`);
-      }
-    });
-
-    location.address = address;
-
-    if (errors.length) {
-      showAlert('danger', errors);
-      return;
-    }
 
     const payload = {
       report_type: reportTypeValue,
       description: descriptionValue,
       location_method: 'both',
-      location,
-      created_at: new Date().toISOString(),
-      contact_name: contactName,
-      contact_phone: contactPhone,
+      location: {
+        lat: latValue,
+        lng: lngValue,
+        maps_url: mapsUrl.value.trim() || `https://maps.google.com/?q=${latValue},${lngValue}`,
+        address: {
+          street: street.value.trim(),
+          barangay: barangay.value.trim(),
+          city: city.value.trim(),
+          notes: addressNotes.value.trim(),
+        },
+      },
+      contact_name: fullName.value.trim(),
+      contact_phone: phone.value.trim(),
+      contact_email: email.value.trim(),
     };
 
     try {
@@ -207,7 +484,14 @@
       }
 
       showAlert('success', `Report submitted successfully. Your report ID is ${data.report_id}.`);
+      updateSummary(payload, data.report_id);
       form.reset();
+      setMapAddress('');
+      hasUserSelected = false;
+      if (mapInstance && mapMarker) {
+        updateMapFromLatLng(defaultCenter.lat, defaultCenter.lng, '', false);
+      }
+      setStep(1);
     } catch (error) {
       showAlert('danger', 'Something went wrong. Please try again later.');
     } finally {

@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Notification
 
@@ -15,6 +16,12 @@ def mark_read(request, pk: int):
     notification = get_object_or_404(Notification, pk=pk, user=request.user)
     notification.is_read = True
     notification.save(update_fields=['is_read'])
+    target = (notification.action_url or '').strip()
+    if target and url_has_allowed_host_and_scheme(
+        url=target,
+        allowed_hosts={request.get_host()},
+    ):
+        return redirect(target)
     return redirect('notifications_inbox')
 
 

@@ -34,8 +34,6 @@
                     <th>Color</th>
                     <th>Barangay</th>
                     <th>Vaccination</th>
-                    <th>Proof</th>
-                    <th>Photo</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -63,23 +61,12 @@
                           -
                         {% endif %}
                       </td>
-                      <td>
-                        {% if dog.vaccination_proof %}
-                          <a href="{{ dog.vaccination_proof.url }}" target="_blank" rel="noopener">View</a>
-                        {% else %}
-                          -
-                        {% endif %}
-                      </td>
-                      <td>
-                        {% if dog.photo %}
-                          <a href="{{ dog.photo.url }}" target="_blank" rel="noopener">View</a>
-                        {% else %}
-                          -
-                        {% endif %}
-                      </td>
                       <td class="text-end">
-                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'dogs_edit' dog.pk %}">
-                          Edit
+                        <a
+                          class="btn btn-sm btn-outline-secondary"
+                          href="{% url 'dogs_registered_detail' dog.pk %}"
+                        >
+                          View
                         </a>
                       </td>
                     </tr>
