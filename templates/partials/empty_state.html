@@ -1,0 +1,8 @@
+<div class="empty-state">
+  <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+  <h3 class="h6 mb-2">{{ title }}</h3>
+  <p class="mb-3">{{ message }}</p>
+  {% if action_url and action_label %}
+    <a class="btn btn-primary" href="{{ action_url }}">{{ action_label }}</a>
+  {% endif %}
+</div>

@@ -37,6 +37,15 @@ python manage.py runserver
 - Reclaim requests require an ownership proof upload for admin/staff review.
 - Adoption reservations for captured dogs notify after 3 days if unclaimed; users confirm, staff schedule appointments.
 
+## Design System
+- Base CSS files:
+  - `static/css/theme.css` (tokens, typography, Bootstrap variable overrides)
+  - `static/css/components.css` (shared components: cards, chips, tables, status pills, steppers)
+  - `static/css/layout.css` (page layout, hero, section spacing, mobile bottom nav)
+- Page-level overrides live in `static/css/pages/` (analytics, profile, reports, dogs, penalties, notifications, auth).
+- `templates/base.html` loads the base CSS files; each page opts into its page CSS via `{% block extra_css %}`.
+- Palette rule: white-dominant surfaces, warm yellow highlights, green primary actions.
+
 ## MVP User Flows (Draft)
 - Public browsing: view dog pound inventory and public reports (read-only).
 - Public report: submit stray report with map/manual address + media upload.

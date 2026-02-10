@@ -1,128 +1,126 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Report Detail{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/reports.css' %}" />
+{% endblock %}
+
 {% block content %}
   <div class="container">
+    {% include 'partials/page_header.html' with eyebrow="Staff" title="Report Detail" subtitle="Review and update report information." %}
+
     <div class="row g-4">
       <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2 class="h5 mb-0">Report #{{ report.id }}</h2>
-              <span class="badge bg-secondary">{{ report.get_status_display }}</span>
-            </div>
-            <p class="mb-1"><strong>Type:</strong> {{ report.get_report_type_display }}</p>
-            <p class="mb-1"><strong>Location:</strong> {{ report.location }}</p>
-            {% if report.maps_url %}
-              <p class="mb-1">
-                <strong>Maps URL:</strong>
-                <a href="{{ report.maps_url }}" target="_blank" rel="noopener">Open map</a>
-              </p>
-            {% endif %}
-            {% if report.latitude and report.longitude %}
-              <p class="mb-1">
-                <strong>Coordinates:</strong>
-                {{ report.latitude }}, {{ report.longitude }}
-              </p>
-            {% endif %}
-            {% if report.address_json %}
-              <p class="mb-1"><strong>Address:</strong></p>
-              <div class="small text-muted mb-2">
-                {% if report.address_json.street %}{{ report.address_json.street }}{% endif %}
-                {% if report.address_json.barangay %}, {{ report.address_json.barangay }}{% endif %}
-                {% if report.address_json.city %}, {{ report.address_json.city }}{% endif %}
-                {% if report.address_json.province %}, {{ report.address_json.province }}{% endif %}
-                {% if report.address_json.postal_code %}, {{ report.address_json.postal_code }}{% endif %}
-              </div>
-              {% if report.address_json.notes %}
-                <p class="mb-1"><strong>Address Notes:</strong> {{ report.address_json.notes }}</p>
-              {% endif %}
-            {% endif %}
-            <p class="mb-1"><strong>Description:</strong> {{ report.description|default:"-" }}</p>
-            <p class="mb-1"><strong>Notes:</strong> {{ report.notes|default:"-" }}</p>
-            <p class="mb-1"><strong>Submitted:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
-            <div class="mt-3">
-              <div class="small text-muted mb-1">Progress</div>
-              <div class="progress">
-                {% if report.status == 'OPEN' %}
-                  <div class="progress-bar bg-secondary" style="width: 25%"></div>
-                {% elif report.status == 'IN_REVIEW' %}
-                  <div class="progress-bar bg-warning" style="width: 50%"></div>
-                {% elif report.status == 'RESOLVED' %}
-                  <div class="progress-bar bg-success" style="width: 75%"></div>
-                {% else %}
-                  <div class="progress-bar bg-success" style="width: 100%"></div>
-                {% endif %}
-              </div>
-            </div>
-            {% if report.photo %}
-              <div class="mt-3">
-                {% with filename=report.photo.name|lower %}
-                  {% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}
-                    <video class="img-fluid rounded" controls>
-                      <source src="{{ report.photo.url }}">
-                      Your browser does not support the video tag.
-                    </video>
-                  {% else %}
-                    <img class="img-fluid rounded" src="{{ report.photo.url }}" alt="Report photo">
-                  {% endif %}
-                {% endwith %}
-              </div>
-            {% endif %}
+        <div class="card-elevated p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h2 class="h5 mb-0">Report #{{ report.id }}</h2>
+            <span class="status-pill status-pill--info">{{ report.get_status_display }}</span>
           </div>
+          <p class="mb-1"><strong>Type:</strong> {{ report.get_report_type_display }}</p>
+          <p class="mb-1"><strong>Location:</strong> {{ report.location }}</p>
+          {% if report.maps_url %}
+            <p class="mb-1">
+              <strong>Maps URL:</strong>
+              <a href="{{ report.maps_url }}" target="_blank" rel="noopener">Open map</a>
+            </p>
+          {% endif %}
+          {% if report.latitude and report.longitude %}
+            <p class="mb-1">
+              <strong>Coordinates:</strong>
+              {{ report.latitude }}, {{ report.longitude }}
+            </p>
+          {% endif %}
+          {% if report.address_json %}
+            <p class="mb-1"><strong>Address:</strong></p>
+            <div class="small text-muted mb-2">
+              {% if report.address_json.street %}{{ report.address_json.street }}{% endif %}
+              {% if report.address_json.barangay %}, {{ report.address_json.barangay }}{% endif %}
+              {% if report.address_json.city %}, {{ report.address_json.city }}{% endif %}
+              {% if report.address_json.province %}, {{ report.address_json.province }}{% endif %}
+              {% if report.address_json.postal_code %}, {{ report.address_json.postal_code }}{% endif %}
+            </div>
+            {% if report.address_json.notes %}
+              <p class="mb-1"><strong>Address Notes:</strong> {{ report.address_json.notes }}</p>
+            {% endif %}
+          {% endif %}
+          <p class="mb-1"><strong>Description:</strong> {{ report.description|default:"-" }}</p>
+          <p class="mb-1"><strong>Notes:</strong> {{ report.notes|default:"-" }}</p>
+          <p class="mb-1"><strong>Submitted:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
+
+          <div class="mt-4">
+            <div class="small text-muted mb-2">Status Timeline</div>
+            <div class="report-status-timeline">
+              <div class="report-status-item"><span>Open</span>{% if report.status == 'OPEN' %}<span class="status-pill status-pill--info">Current</span>{% endif %}</div>
+              <div class="report-status-item"><span>In Review</span>{% if report.status == 'IN_REVIEW' %}<span class="status-pill status-pill--warning">Current</span>{% endif %}</div>
+              <div class="report-status-item"><span>Resolved</span>{% if report.status == 'RESOLVED' %}<span class="status-pill status-pill--success">Current</span>{% endif %}</div>
+              <div class="report-status-item"><span>Captured</span>{% if report.status == 'CAPTURED' %}<span class="status-pill status-pill--success">Current</span>{% endif %}</div>
+            </div>
+          </div>
+
+          {% if report.photo %}
+            <div class="mt-3">
+              {% with filename=report.photo.name|lower %}
+                {% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}
+                  <video class="img-fluid rounded" controls preload="metadata">
+                    <source src="{{ report.photo.url }}">
+                    Your browser does not support the video tag.
+                  </video>
+                {% else %}
+                  <img class="img-fluid rounded" src="{{ report.photo.url }}" alt="Report photo" loading="lazy">
+                {% endif %}
+              {% endwith %}
+            </div>
+          {% endif %}
         </div>
       </div>
 
       <div class="col-lg-4">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Reporter Info</h3>
-            <p class="mb-1">
-              <strong>Contact Name:</strong>
-              {{ report.contact_name|default:"-" }}
-            </p>
-            <p class="mb-1">
-              <strong>Contact Phone:</strong>
-              {{ report.contact_phone|default:"-" }}
-            </p>
-            <p class="mb-1">
-              <strong>Contact Email:</strong>
-              {{ report.contact_email|default:"-" }}
-            </p>
-            <p class="mb-1">
-              <strong>Account:</strong>
-              {% if report.reported_by %}
-                {{ report.reported_by.email }}
-              {% else %}
-                Anonymous
-              {% endif %}
-            </p>
-          </div>
+        <div class="card-elevated p-4">
+          <h3 class="h6 mb-3">Reporter Info</h3>
+          <p class="mb-1">
+            <strong>Contact Name:</strong>
+            {{ report.contact_name|default:"-" }}
+          </p>
+          <p class="mb-1">
+            <strong>Contact Phone:</strong>
+            {{ report.contact_phone|default:"-" }}
+          </p>
+          <p class="mb-1">
+            <strong>Contact Email:</strong>
+            {{ report.contact_email|default:"-" }}
+          </p>
+          <p class="mb-1">
+            <strong>Account:</strong>
+            {% if report.reported_by %}
+              {{ report.reported_by.email }}
+            {% else %}
+              Anonymous
+            {% endif %}
+          </p>
         </div>
-        <div class="card shadow-sm border-0 mt-3">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Update Status</h3>
-            <form method="post" action="{% url 'reports_update_status' report.id %}">
-              {% csrf_token %}
-              <div class="mb-3">
-                <label class="form-label">Status</label>
-                {{ form.status }}
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Internal Notes</label>
-                {{ form.notes }}
-              </div>
-              <button class="btn btn-primary w-100" type="submit">Save</button>
-            </form>
-            <form method="post" action="{% url 'reports_update_status' report.id %}" class="mt-2">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="captured">
-              <button class="btn btn-outline-success w-100" type="submit">
-                Mark Captured (Done)
-              </button>
-            </form>
-          </div>
+        <div class="card-elevated p-4 mt-3">
+          <h3 class="h6 mb-3">Update Status</h3>
+          <form method="post" action="{% url 'reports_update_status' report.id %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              {{ form.status }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Internal Notes</label>
+              {{ form.notes }}
+            </div>
+            <button class="btn btn-primary w-100" type="submit">Save</button>
+          </form>
+          <form method="post" action="{% url 'reports_update_status' report.id %}" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="captured">
+            <button class="btn btn-outline-success w-100" type="submit">
+              Mark Captured (Done)
+            </button>
+          </form>
         </div>
         <div class="mt-3">
           <a class="btn btn-outline-secondary w-100" href="{% url 'reports_staff_list' %}">Back to list</a>

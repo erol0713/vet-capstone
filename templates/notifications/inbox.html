@@ -1,24 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Notifications{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/notifications.css' %}" />
+{% endblock %}
+
 {% block content %}
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h2 class="h4 mb-1">Notifications</h2>
-        <p class="text-muted mb-0">All updates for your account.</p>
-      </div>
+    {% include 'partials/page_header.html' with eyebrow="Updates" title="Notifications" subtitle="All updates for your account." %}
+    <div class="action-bar justify-content-end mb-3">
       <a class="btn btn-outline-secondary btn-sm" href="{% url 'notifications_read_all' %}">
         Mark all read
       </a>
     </div>
 
-    <div class="card shadow-sm border-0">
-      <div class="list-group list-group-flush">
+    <div class="notifications-panel">
+      <div class="data-list">
         {% for item in items %}
           <a
-            class="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
+            class="data-list-item notifications-item text-decoration-none"
             href="{% url 'notifications_read' item.pk %}"
           >
             <div>
@@ -28,14 +30,14 @@
             </div>
             <div>
               {% if not item.is_read %}
-                <span class="badge bg-primary">New</span>
+                <span class="status-pill status-pill--success">New</span>
               {% else %}
-                <span class="badge bg-light text-muted">Read</span>
+                <span class="status-pill status-pill--muted">Read</span>
               {% endif %}
             </div>
           </a>
         {% empty %}
-          <div class="list-group-item text-muted">No notifications yet.</div>
+          {% include 'partials/empty_state.html' with title="No notifications yet." message="You'll see system updates and alerts here." %}
         {% endfor %}
       </div>
     </div>

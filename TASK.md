@@ -1,6 +1,7 @@
 # TASKS
 
 ## Now
+- [ ] Full-system design system refresh (Civic + Warm), including CSS refactor, shared components, and page refresh.
 - [x] Define MVP user flows (public browsing, report, adoption, reclaim, penalty).
 - [ ] Redesign public report form into 3-step flow with map selection, new report types, and summary preview.
 - [x] Sort staff reports so unresolved/latest appear above completed.
@@ -36,6 +37,8 @@
 - [x] Add Section 28/29 service fees + redemption auto-select in penalty checklist.
 - [x] Add printable citation receipt with owner + violations list.
 - [x] Notify admin/staff on adoption + reclaim requests.
+- [x] Modernize analytics dashboard UI styling.
+- [x] Add analytics date-range selector + live chart data.
 - [ ] Create seed data management command for demo.
 
 ## Later

@@ -1,0 +1,144 @@
+:root {
+  /* Typography */
+  --font-sans: "Source Sans 3", "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4", "Georgia", serif;
+
+  /* Palette (60-30-10) */
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f7f7;
+  --color-warm: #ffffff;
+  --color-warm-2: #f7f7f7;
+  --color-primary: #1f8a5b;
+  --color-primary-600: #166d46;
+  --color-ink: #0b2b26;
+  --color-muted: #5f6f68;
+  --color-border: #e3e7e1;
+
+  /* Shadows */
+  --shadow-1: 0 8px 20px rgba(11, 43, 38, 0.08);
+  --shadow-2: 0 18px 40px rgba(11, 43, 38, 0.12);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+
+  /* Bootstrap overrides */
+  --bs-primary: var(--color-primary);
+  --bs-secondary: #6c757d;
+  --bs-body-font-family: var(--font-sans);
+  --bs-body-color: var(--color-ink);
+  --bs-border-color: var(--color-border);
+  --bs-link-color: var(--color-primary-600);
+  --bs-link-hover-color: #0f5e3c;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  letter-spacing: 0.01em;
+}
+
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans);
+}
+
+a {
+  color: var(--bs-link-color);
+  text-decoration-color: rgba(31, 138, 91, 0.4);
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--bs-link-hover-color);
+}
+
+::selection {
+  background: var(--color-warm-2);
+  color: var(--color-ink);
+}
+
+hr {
+  border-color: var(--color-border);
+  opacity: 1;
+}
+
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  background: var(--color-ink);
+  color: #ffffff;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  z-index: 1000;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}

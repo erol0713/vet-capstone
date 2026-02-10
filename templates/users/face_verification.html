@@ -3,12 +3,16 @@
 
 {% block title %}Face Verification{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}" />
+{% endblock %}
+
 {% block content %}
-  <section class="profile-section">
+  <section class="section-pad">
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-lg-8">
-          <div class="profile-card">
+          <div class="card-elevated p-4">
             <div class="profile-card-header">
               <div>
                 <p class="profile-card-eyebrow">Verification</p>

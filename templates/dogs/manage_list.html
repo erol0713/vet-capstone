@@ -4,15 +4,12 @@
 
 {% block content %}
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h2 class="h4 mb-1">Dog Intake & Inventory</h2>
-        <p class="text-muted mb-0">Admin/Staff management view.</p>
-      </div>
+    {% include 'partials/page_header.html' with eyebrow="Staff" title="Dog Intake & Inventory" subtitle="Admin/Staff management view." %}
+    <div class="action-bar justify-content-end mb-3">
       <a class="btn btn-primary" href="{% url 'dogs_create' %}">New Intake</a>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="table-shell">
       <div class="table-responsive">
         <table class="table mb-0">
           <thead>

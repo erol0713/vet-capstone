@@ -4,26 +4,24 @@
 
 {% block content %}
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h2 class="h4 mb-1">Registered Dogs by Owner</h2>
-        <p class="text-muted mb-0">Admin/Staff view of user-registered dogs.</p>
-      </div>
+    {% include 'partials/page_header.html' with eyebrow="Staff" title="Registered Dogs by Owner" subtitle="Admin/Staff view of user-registered dogs." %}
+    <div class="action-bar justify-content-end mb-3">
       <a class="btn btn-outline-secondary" href="{% url 'dogs_manage_list' %}">Back to Intake</a>
     </div>
 
     {% if grouped %}
       {% for owner, dogs in grouped.items %}
-        <div class="card shadow-sm border-0 mb-3">
+        <div class="card-elevated mb-3">
           <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div>
                 <h3 class="h6 mb-1">{{ owner.username }}</h3>
                 <div class="text-muted small">{{ owner.email }}</div>
               </div>
-              <span class="badge bg-secondary">{{ dogs|length }} dog{{ dogs|length|pluralize }}</span>
+              <span class="badge-soft">{{ dogs|length }} dog{{ dogs|length|pluralize }}</span>
             </div>
-            <div class="table-responsive">
+            <div class="table-shell">
+              <div class="table-responsive">
               <table class="table mb-0">
                 <thead>
                   <tr>
@@ -49,8 +47,8 @@
                       <td>
                         {% if dog.vaccination_status %}
                           {{ dog.get_vaccination_status_display }}
-                          {% if dog.vaccination_status == 'UNVACCINATED' and dog.vaccination_request %}
-                            <span class="badge bg-warning text-dark">Requested</span>
+                        {% if dog.vaccination_status == 'UNVACCINATED' and dog.vaccination_request %}
+                            <span class="badge-soft">Requested</span>
                           {% endif %}
                           {% if dog.vaccination_schedule %}
                             <div class="small text-muted">
@@ -74,13 +72,12 @@
                 </tbody>
               </table>
             </div>
+            </div>
           </div>
         </div>
       {% endfor %}
     {% else %}
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-4 text-center text-muted">No registered dogs found.</div>
-      </div>
+      {% include 'partials/empty_state.html' with title="No registered dogs found." message="Registered dogs will appear once owners submit them." %}
     {% endif %}
   </div>
 {% endblock %}

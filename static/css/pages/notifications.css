@@ -1,0 +1,24 @@
+.notifications-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+}
+
+.notifications-item {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notifications-item:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 767.98px) {
+  .notifications-panel {
+    border-radius: 0;
+    box-shadow: none;
+    border: 0;
+    min-height: calc(100vh - 6rem);
+  }
+}

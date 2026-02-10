@@ -1,98 +1,160 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Analytics Dashboard{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/analytics.css' %}" />
+{% endblock %}
+
 {% block content %}
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h2 class="h4 mb-1">Analytics Dashboard</h2>
-        <p class="text-muted mb-0">Placeholder charts for reporting modules.</p>
+    {% include 'partials/page_header.html' with eyebrow="Reporting Overview" title="Analytics Dashboard" subtitle="Snapshot of activity across captures, adoptions, and reports." %}
+
+    <div class="card-soft analytics-range-card p-3 mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-week"></i>
+          <span class="fw-semibold">Date range active</span>
+        </div>
+        <div class="text-muted">Range: {{ range_label }}</div>
       </div>
     </div>
 
-    <div class="row g-3 mb-3">
-      <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <div class="small text-muted">Captures This Month</div>
-            <div class="h5 mb-0">{{ captures_month }}</div>
+    <div class="row g-4 mb-4">
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <span class="analytics-kpi-icon">
+              <i class="bi bi-geo-alt"></i>
+            </span>
+            <div>
+              <div class="kpi-label">Captures in Range</div>
+              <div class="text-muted small">Stray operations</div>
+            </div>
           </div>
+          <div class="kpi-value">{{ captures_range }}</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <div class="small text-muted">Adoptions This Month</div>
-            <div class="h5 mb-0">{{ adoptions_month }}</div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <span class="analytics-kpi-icon">
+              <i class="bi bi-house-heart"></i>
+            </span>
+            <div>
+              <div class="kpi-label">Adoptions in Range</div>
+              <div class="text-muted small">Successful placements</div>
+            </div>
           </div>
+          <div class="kpi-value">{{ adoptions_range }}</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <div class="small text-muted">Reclaims This Month</div>
-            <div class="h5 mb-0">{{ reclaims_month }}</div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <span class="analytics-kpi-icon">
+              <i class="bi bi-arrow-counterclockwise"></i>
+            </span>
+            <div>
+              <div class="kpi-label">Reclaims in Range</div>
+              <div class="text-muted small">Returned to owners</div>
+            </div>
           </div>
+          <div class="kpi-value">{{ reclaims_range }}</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <div class="small text-muted">Reports This Month</div>
-            <div class="h5 mb-0">{{ reports_month }}</div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+          <div class="d-flex align-items-center gap-3">
+            <span class="analytics-kpi-icon">
+              <i class="bi bi-clipboard-data"></i>
+            </span>
+            <div>
+              <div class="kpi-label">Reports in Range</div>
+              <div class="text-muted small">New intake reports</div>
+            </div>
           </div>
+          <div class="kpi-value">{{ reports_range }}</div>
         </div>
       </div>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-4">
       <div class="col-lg-6">
-        <div class="card shadow-sm border-0 h-100">
-          <div class="card-body">
-            <h3 class="h6">Monthly Captures</h3>
-            <canvas id="chartCaptures" height="140"></canvas>
+        <div class="card-elevated analytics-panel p-4 h-100">
+          <div class="analytics-panel-head">
+            <div>
+              <div class="analytics-panel-title">Monthly Captures</div>
+              <div class="analytics-panel-subtitle">Trend over selected range</div>
+            </div>
+            <span class="chip">Captures</span>
+          </div>
+          <div class="analytics-chart">
+            <canvas id="chartCaptures" height="180" aria-label="Monthly captures chart" role="img"></canvas>
+          </div>
+          <p class="chart-fallback" data-fallback="Monthly capture counts across the selected date range.">
+            Shows monthly capture counts across the selected date range.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-elevated analytics-panel p-4 h-100">
+          <div class="analytics-panel-head">
+            <div>
+              <div class="analytics-panel-title">Adoption vs Reclaim</div>
+              <div class="analytics-panel-subtitle">Totals for selected range</div>
+            </div>
+            <span class="chip">Outcomes</span>
+          </div>
+          <div class="analytics-chart">
+            <canvas id="chartAdoption" height="180" aria-label="Adoption versus reclaim chart" role="img"></canvas>
+          </div>
+          <p class="chart-fallback" data-fallback="Compares adoption totals with reclaim totals for the active range.">
+            Compares adoption totals with reclaim totals for the active range.
+          </p>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card-elevated p-4 h-100">
+          <div class="analytics-panel-head">
+            <div>
+              <div class="analytics-panel-title">Barangay Hotspots</div>
+              <div class="analytics-panel-subtitle">Top 5 capture locations</div>
+            </div>
+          </div>
+          <div class="data-list">
+            {% for item in barangay_counts %}
+              <div class="data-list-item">
+                <div class="fw-semibold">{{ item.barangay }}</div>
+                <span class="badge-soft">{{ item.count }}</span>
+              </div>
+            {% empty %}
+              {% include 'partials/empty_state.html' with title="No data yet." message="Capture hotspots will appear once data is available." %}
+            {% endfor %}
           </div>
         </div>
       </div>
       <div class="col-lg-6">
-        <div class="card shadow-sm border-0 h-100">
-          <div class="card-body">
-            <h3 class="h6">Adoption vs Reclaim</h3>
-            <canvas id="chartAdoption" height="140"></canvas>
+        <div class="card-elevated analytics-revenue p-4 h-100">
+          <div class="analytics-panel-head">
+            <div>
+              <div class="analytics-panel-title">Total Revenue</div>
+              <div class="analytics-panel-subtitle">From penalties and services</div>
+            </div>
+            <span class="chip">PHP</span>
           </div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="card shadow-sm border-0 h-100">
-          <div class="card-body">
-            <h3 class="h6">Barangay Hotspots (Top 5)</h3>
-            <ul class="list-group list-group-flush">
-              {% for item in barangay_counts %}
-                <li class="list-group-item d-flex justify-content-between">
-                  <span>{{ item.barangay }}</span>
-                  <span class="text-muted">{{ item.count }}</span>
-                </li>
-              {% empty %}
-                <li class="list-group-item text-muted">No data yet.</li>
-              {% endfor %}
-            </ul>
+          <div class="analytics-revenue-amount">
+            <span class="me-1">&#8369;</span>
+            {{ revenue_total }}
           </div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="card shadow-sm border-0 h-100">
-          <div class="card-body">
-            <h3 class="h6">Total Revenue</h3>
-            <div class="display-6">₱{{ revenue_total }}</div>
-            <div class="small text-muted mt-2">Vaccinations recorded: {{ vaccinations_total }}</div>
-          </div>
+          <div class="text-muted">Vaccinations recorded: {{ vaccinations_total }}</div>
         </div>
       </div>
     </div>
   </div>
 
+  {{ chart_data|json_script:"analytics-chart-data" }}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="{% static 'js/analytics.js' %}"></script>
 {% endblock %}

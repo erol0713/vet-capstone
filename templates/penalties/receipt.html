@@ -3,53 +3,11 @@
 
 {% block title %}Citation Ticket{% endblock %}
 
-{% block content %}
-  <style>
-    .receipt-wrap {
-      max-width: 900px;
-    }
-    .receipt-brand {
-      color: #d39d00;
-      font-weight: 700;
-      font-size: 2.4rem;
-      letter-spacing: 0.04em;
-      line-height: 1;
-    }
-    .receipt-subtitle {
-      font-size: 0.9rem;
-    }
-    .receipt-title {
-      letter-spacing: 0.08em;
-    }
-    .receipt-rule {
-      height: 2px;
-      background: #111;
-      width: 100%;
-    }
-    .receipt-signature {
-      min-width: 240px;
-    }
-    @media print {
-      body {
-        background: #fff !important;
-      }
-      nav,
-      .no-print {
-        display: none !important;
-      }
-      main {
-        padding: 0 !important;
-      }
-      .card,
-      .shadow-sm {
-        box-shadow: none !important;
-      }
-      .receipt-wrap {
-        max-width: 100% !important;
-      }
-    }
-  </style>
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/penalties.css' %}" />
+{% endblock %}
 
+{% block content %}
   <div class="container receipt-wrap">
     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
       <div>

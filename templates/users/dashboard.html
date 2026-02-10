@@ -1,49 +1,40 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}" />
+{% endblock %}
 
 {% block content %}
   <section class="profile-section">
     <div class="container">
-      <div class="row g-4">
-        <div class="col-lg-8">
-          <div class="profile-card">
-            <div class="profile-card-header">
-              <div>
-                <p class="profile-card-eyebrow">Overview</p>
-                <h2 class="profile-card-title">Welcome back, {{ request.user.username }}</h2>
-              </div>
-              <span class="profile-chip">User Portal</span>
-            </div>
-            <p class="profile-note mb-0">
-              Manage your adoption requests, reclaim tickets, and notifications.
-            </p>
+      {% with dashboard_title="Welcome back, "|add:request.user.username %}
+        {% include 'partials/page_header.html' with eyebrow="User Portal" title=dashboard_title subtitle="Manage your adoption requests, reclaim tickets, and notifications." %}
+      {% endwith %}
+
+      <div class="profile-card">
+        <div class="profile-card-header">
+          <div>
+            <p class="profile-card-eyebrow">Verification</p>
+            <h3 class="profile-card-title">Account Status</h3>
           </div>
         </div>
-        <div class="col-lg-4">
-          <div class="profile-card">
-            <div class="profile-card-header">
-              <div>
-                <p class="profile-card-eyebrow">Verification</p>
-                <h3 class="profile-card-title">Account Status</h3>
-              </div>
-            </div>
-            <div class="profile-status-item">
-              <div class="profile-status-label">Current Status</div>
-              <div>
-                {% if request.user.is_verified %}
-                  <span class="status-pill status-pill--success">Verified</span>
-                {% else %}
-                  <span class="status-pill status-pill--warning">Pending</span>
-                {% endif %}
-              </div>
-            </div>
-            <div class="mt-3">
-              <a class="btn btn-outline-primary btn-sm profile-btn" href="{% url 'verification_status' %}">
-                View verification
-              </a>
-            </div>
+        <div class="profile-status-item">
+          <div class="profile-status-label">Current Status</div>
+          <div>
+            {% if request.user.is_verified %}
+              <span class="status-pill status-pill--success">Verified</span>
+            {% else %}
+              <span class="status-pill status-pill--warning">Pending</span>
+            {% endif %}
           </div>
+        </div>
+        <div class="mt-3">
+          <a class="btn btn-outline-primary btn-sm profile-btn" href="{% url 'verification_status' %}">
+            View verification
+          </a>
         </div>
       </div>
     </div>

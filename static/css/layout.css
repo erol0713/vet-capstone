@@ -1,0 +1,93 @@
+.app-shell {
+  background: var(--color-surface);
+  min-height: 100vh;
+}
+
+.main-content {
+  padding: var(--space-6) 0 var(--space-7);
+}
+
+@media (max-width: 767.98px) {
+  .main-content {
+    padding: var(--space-5) 0 6rem;
+  }
+}
+
+.section-pad {
+  padding: var(--space-6) 0;
+}
+
+.hero {
+  padding: var(--space-6) 0;
+  background: var(--color-surface);
+}
+
+.hero-card {
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-6);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.section-strip {
+  padding: var(--space-6) 0;
+}
+
+.grid-cards {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.sticky-summary {
+  top: 1.5rem;
+}
+
+.mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0.75rem;
+  z-index: 1030;
+  box-shadow: 0 -6px 18px rgba(11, 43, 38, 0.08);
+}
+
+.mobile-bottom-nav a {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 56px;
+}
+
+.mobile-bottom-nav a.active {
+  color: var(--color-primary-600);
+}
+
+@media (min-width: 992px) {
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+.tap-target {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}

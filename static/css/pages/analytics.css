@@ -1,0 +1,82 @@
+.analytics-range-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.analytics-kpi-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-2);
+  color: var(--color-primary-600);
+  font-size: 1.2rem;
+}
+
+.analytics-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.analytics-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--color-primary);
+}
+
+.analytics-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.analytics-panel-title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.analytics-panel-subtitle {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-muted);
+}
+
+.analytics-chart {
+  position: relative;
+  height: 240px;
+}
+
+.analytics-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.analytics-revenue {
+  background: var(--color-surface-2);
+}
+
+.analytics-revenue-amount {
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-weight: 700;
+}
+
+.chart-fallback {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 767.98px) {
+  .analytics-chart {
+    height: 200px;
+  }
+}
