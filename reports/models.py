@@ -6,9 +6,13 @@ from core.models import TimeStampedModel
 
 class Report(TimeStampedModel):
     class ReportType(models.TextChoices):
+        STRAY = 'STRAY', 'Stray Dog'
+        INJURED = 'INJURED', 'Injured Dog'
         SURRENDER = 'SURRENDER', 'Surrender Dog'
         DANGEROUS = 'DANGEROUS', 'Dangerous Dog'
-        STRAY = 'STRAY', 'Stray Dog'
+        BITE_INCIDENT = 'BITE_INCIDENT', 'Bite Incident'
+        ABANDONED = 'ABANDONED', 'Abandoned Dog'
+        WELFARE = 'WELFARE', 'Welfare Concern'
         OTHER = 'OTHER', 'Other'
 
     class LocationMethod(models.TextChoices):

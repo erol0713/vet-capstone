@@ -4,53 +4,77 @@
 {% block title %}Dog Pound{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/dogs.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/dog-public-list.css' %}">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Public" title="Dog Pound Inventory" subtitle="Public view of dogs currently in the system." %}
+  <section class="section-pad dog-list-page">
+    <div class="container dog-list-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Public" title="Dog Pound Inventory" subtitle="Browse dogs currently managed by the Bayawan City dog pound." %}
 
-    <div class="row g-4">
-      <div class="col-12">
-        <p class="small text-muted mb-0">Showing {{ dogs|length }} result(s).</p>
+      <div class="dog-list-toolbar">
+        <p class="dog-list-meta mb-0">
+          Showing <strong>{{ dogs|length }}</strong> result(s).
+        </p>
+        <a class="btn btn-sm btn-primary" href="{% url 'reports_public' %}">
+          <i class="bi bi-flag"></i>
+          Report a Dog
+        </a>
       </div>
-      {% for dog in dogs %}
-        <div class="col-md-6 col-lg-4">
-          <div class="dog-card">
-            {% if dog.photo %}
-              <img class="dog-image" src="{{ dog.photo.url }}" alt="Dog photo" loading="lazy">
-            {% endif %}
-            <div class="dog-card-body">
-              <h3 class="dog-title h6">
-                {% if dog.name %}
-                  {{ dog.name }}
-                {% else %}
-                  {{ dog.color|default:"Unnamed Dog" }}
-                {% endif %}
-              </h3>
-              <div class="d-flex flex-wrap gap-2 mb-2">
-                <span class="status-pill status-pill--info">{{ dog.get_status_display }}</span>
-              {% if dog.capture_datetime %}
-                <span class="badge-soft">Reclaim</span>
-              {% elif dog.surrender_datetime %}
-                <span class="badge-soft badge-soft--success">Adopt</span>
+
+      <div class="row g-3 dog-list-grid">
+        {% for dog in dogs %}
+          <div class="col-md-6 col-xl-4">
+            <article class="dog-card card-elevated h-100 dog-card-public">
+              {% if dog.photo %}
+                <a href="{% url 'dogs_public_detail' dog.pk %}" class="dog-card-media-link" aria-label="Open {{ dog.name|default:'dog' }} details">
+                  <img class="dog-image dog-card-media" src="{{ dog.photo.url }}" alt="{{ dog.name|default:'Dog' }} photo" loading="lazy">
+                </a>
+              {% else %}
+                <div class="dog-image dog-image--placeholder dog-card-media">
+                  <i class="bi bi-image"></i>
+                  <span>No photo available</span>
+                </div>
               {% endif %}
+
+              <div class="dog-card-body dog-card-public-body d-flex flex-column">
+                <div class="dog-card-public-head">
+                  <h3 class="dog-title dog-card-name mb-0">
+                    {% if dog.name %}
+                      {{ dog.name }}
+                    {% else %}
+                      Unnamed Dog
+                    {% endif %}
+                  </h3>
+                </div>
+
+                <div class="dog-card-public-tags">
+                  {% if dog.status == 'AVAILABLE' %}
+                    <span class="status-pill status-pill--success">{{ dog.get_status_display }}</span>
+                  {% else %}
+                    <span class="status-pill status-pill--info">{{ dog.get_status_display }}</span>
+                  {% endif %}
+                  {% if dog.capture_datetime %}
+                    <span class="badge-soft">Reclaim Eligible</span>
+                  {% elif dog.surrender_datetime %}
+                    <span class="badge-soft badge-soft--success">For Adoption</span>
+                  {% else %}
+                    <span class="badge-soft">Intake</span>
+                  {% endif %}
+                </div>
+
+                <a class="btn btn-outline-primary btn-sm mt-auto dog-card-cta" href="{% url 'dogs_public_detail' dog.pk %}">
+                  View Details
+                </a>
               </div>
-              <p class="dog-meta mb-3">
-                Barangay: <span class="dog-chip">{{ dog.barangay|default:"Not set" }}</span>
-              </p>
-              <a class="btn btn-outline-primary btn-sm" href="{% url 'dogs_public_detail' dog.pk %}">
-                View Details
-              </a>
-            </div>
+            </article>
           </div>
-        </div>
-      {% empty %}
-        <div class="col-12">
-          {% include 'partials/empty_state.html' with title="No dogs available yet." message="Check back soon for updates from the dog pound." %}
-        </div>
-      {% endfor %}
+        {% empty %}
+          <div class="col-12">
+            {% include 'partials/empty_state.html' with title="No dogs available yet." message="Check back soon for inventory updates from the dog pound." %}
+          </div>
+        {% endfor %}
+      </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

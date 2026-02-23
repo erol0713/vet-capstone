@@ -3,10 +3,6 @@
 
 {% block title %}Face Verification{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}" />
-{% endblock %}
-
 {% block content %}
   <section class="section-pad">
     <div class="container">
@@ -59,3 +55,4 @@
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script src="{% static 'js/face_liveness.js' %}"></script>
 {% endblock %}
+

@@ -1,13 +1,24 @@
 # TASKS
 
 ## Now
-- [ ] Full-system design system refresh (Civic + Warm), including CSS refactor, shared components, and page refresh.
+- [x] Simplify global header to a single centered-left title with cleaner spacing.
+- [x] Show user avatar in navbar profile toggle.
+- [x] Remove `Register Dog` link from owner navbar.
+- [x] Full-system design system refresh (Civic + Warm), including CSS refactor, shared components, and page refresh.
+- [x] Simplify user dashboard with beginner-friendly guidance and reduced redundant actions.
+- [x] Refresh user dashboard visual hierarchy and onboarding copy for first-time users.
+- [x] Remove redundant dashboard actions (hero quick links + duplicate KPI links).
+- [x] Redesign staff penalty checklist page for clearer workflow and modern layout.
+- [x] Modernize staff report detail page with clearer layout and action flow.
+- [x] Refactor CSS for consistency and maintainability (utilities layer, deduplicated page styles, responsive table stack).
 - [x] Define MVP user flows (public browsing, report, adoption, reclaim, penalty).
-- [ ] Redesign public report form into 3-step flow with map selection, new report types, and summary preview.
+- [x] Redesign public report form into 3-step flow with map selection, new report types, and summary preview.
 - [x] Sort staff reports so unresolved/latest appear above completed.
 - [x] Return to Registered Dogs by Owner after editing from that page.
 - [x] Align notification badge to bell icon.
+- [x] Improve admin user management page layout for readability and responsiveness.
 - [x] Remove proof/photo columns and add view-only page for registered dogs.
+- [x] Modernize staff registered-dog detail page layout for clearer, compact review.
 - [x] Consolidate profile sections into one card; keep compliance separate on top.
 - [x] Compact and modernize profile page spacing and typography.
 - [x] Limit adoption/reclaim to one active request per user per dog (allow retry after rejection).
@@ -15,6 +26,8 @@
 - [x] Remove kennel slot and GPS fields from dog detail/list UI.
 - [x] Limit staff dog status dropdown to Available for Adoption and Reclaimed.
 - [x] Enforce vaccination status + proof/appointment request on dog registration.
+- [x] Add vaccination completion recording (date + expiry), profile expiry visibility, and auto expiry reminders/prompts.
+- [x] Gate owner-registered dogs behind admin/staff vaccination approval before showing in My Dogs/Profile.
 - [x] Add admin/staff view for registered dogs grouped by owner with navbar link.
 - [x] Allow report submissions to include a dog photo/video upload.
 - [x] Build user report form with Google Maps/manual address + API endpoint.
@@ -29,6 +42,7 @@
 - [x] Adoption + reclaim workflows
 - [x] Implement authentication + verification flow (OTP placeholder, face verification stub).
 - [x] Build dog intake + inventory CRUD (Admin/Staff).
+- [x] Show intake form validation errors so failed saves are actionable for staff.
 - [x] Build public dog pound view (read-only).
 - [x] Implement penalty checklist UI + JS calculator (static).
 - [x] Add notifications bell + unread counter (UI + model).

@@ -1,0 +1,169 @@
+.staff-admin-page .staff-admin-wrap {
+  max-width: 1140px;
+}
+
+.staff-admin-page .page-header {
+  margin-bottom: var(--space-4);
+}
+
+.staff-admin-summary {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+  padding: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.staff-admin-summary-title {
+  margin: 0 0 0.3rem;
+  font-size: var(--text-lg);
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+
+.staff-admin-summary-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.staff-admin-chip-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.staff-admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
+  color: #355349;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  padding: 0.28rem 0.65rem;
+}
+
+.staff-admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.staff-admin-toolbar .btn {
+  font-weight: 700;
+}
+
+.staff-admin-table-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+
+.staff-admin-table-card .table {
+  margin-bottom: 0;
+}
+
+.staff-admin-table-card .table thead th {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4f5f59;
+  font-weight: 700;
+  background: #f7f8f6;
+}
+
+.staff-admin-table-card .table tbody td {
+  padding-top: 0.68rem;
+  padding-bottom: 0.68rem;
+}
+
+.staff-admin-table-card .table tbody tr:hover {
+  background: #fbfcfb;
+}
+
+.staff-admin-empty {
+  border: 1px dashed rgba(11, 43, 38, 0.18);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  color: var(--color-muted);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.staff-admin-owner-card {
+  border: 1px solid var(--color-border);
+}
+
+.staff-admin-owner-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+.staff-admin-owner-title {
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+}
+
+.staff-admin-owner-meta {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.staff-admin-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.staff-admin-legend i {
+  color: var(--color-primary-600);
+}
+
+.staff-admin-table-actions {
+  display: inline-flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.staff-admin-table-actions .btn {
+  font-weight: 700;
+}
+
+.staff-admin-page .table-mobile-stack tbody td[data-label="Actions"] .staff-admin-table-actions {
+  justify-content: flex-start;
+}
+
+@media (max-width: 767.98px) {
+  .staff-admin-page .page-header {
+    margin-bottom: var(--space-3);
+  }
+
+  .staff-admin-summary,
+  .staff-admin-table-card {
+    border-radius: var(--radius-sm);
+  }
+}

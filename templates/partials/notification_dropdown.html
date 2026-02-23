@@ -1,0 +1,51 @@
+{% if request.user.is_authenticated %}
+  <li class="app-navbar__item app-navbar__dropdown app-navbar__notifications" data-dropdown>
+    <button
+      class="app-navbar__link app-navbar__dropdown-toggle app-navbar__icon-link {% if request.resolver_match.url_name == 'notifications_inbox' %}is-active{% endif %}"
+      type="button"
+      data-dropdown-toggle
+      aria-expanded="false"
+      aria-controls="{{ menu_id|default:'notificationsMenu' }}"
+      aria-label="Open notifications"
+    >
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      {% if unread_notifications %}
+        <span class="app-navbar__badge">{{ unread_notifications }}</span>
+      {% endif %}
+    </button>
+    <ul class="app-navbar__dropdown-menu app-navbar__dropdown-menu--notifications" id="{{ menu_id|default:'notificationsMenu' }}">
+      <li class="app-navbar__dropdown-header">
+        <span class="fw-semibold">Notifications</span>
+        <a
+          class="app-navbar__dropdown-link app-navbar__dropdown-link--inline"
+          data-nav-link
+          href="{% url 'notifications_inbox' %}"
+        >
+          View all
+        </a>
+      </li>
+      {% for item in nav_notifications %}
+        <li>
+          <a
+            class="app-navbar__dropdown-link app-navbar__dropdown-notice {% if not item.is_read %}is-unread{% endif %}"
+            data-nav-link
+            href="{% url 'notifications_read' item.pk %}"
+          >
+            <span class="app-navbar__dropdown-notice-title">{{ item.title }}</span>
+            <span class="app-navbar__dropdown-notice-body">{{ item.message|truncatechars:90 }}</span>
+            <span class="app-navbar__dropdown-notice-meta">{{ item.created_at|date:"M d, Y H:i" }}</span>
+          </a>
+        </li>
+      {% empty %}
+        <li>
+          <div class="app-navbar__dropdown-empty">No notifications yet.</div>
+        </li>
+      {% endfor %}
+      <li class="app-navbar__dropdown-footer">
+        <a class="app-navbar__dropdown-link" data-nav-link href="{% url 'notifications_inbox' %}">
+          Open notification center
+        </a>
+      </li>
+    </ul>
+  </li>
+{% endif %}

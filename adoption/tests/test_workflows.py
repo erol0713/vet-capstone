@@ -22,7 +22,7 @@ def create_user(role, verified=True):
     )
 
 
-def test_verified_user_can_reserve(client):
+def test_verified_user_can_adopt_available_dog_directly(client):
     user = create_user('OWNER', verified=True)
     dog = Dog.objects.create(status=Dog.Status.AVAILABLE)
     client.force_login(user)
@@ -30,7 +30,8 @@ def test_verified_user_can_reserve(client):
     response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
 
     assert response.status_code == 302
-    assert AdoptionReservation.objects.filter(dog=dog, requester=user).exists()
+    reservation = AdoptionReservation.objects.get(dog=dog, requester=user)
+    assert reservation.confirmed_at is not None
 
 
 def test_unverified_user_blocked_from_reserve(client):
@@ -55,7 +56,8 @@ def test_verified_user_can_reserve_impounded_dog(client):
     response = client.post(f'/adoption/dogs/{dog.id}/reserve/', {})
 
     assert response.status_code == 302
-    assert AdoptionReservation.objects.filter(dog=dog, requester=user).exists()
+    reservation = AdoptionReservation.objects.get(dog=dog, requester=user)
+    assert reservation.confirmed_at is None
 
 
 def test_adoption_request_blocked_when_active_exists(client):

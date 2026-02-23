@@ -128,6 +128,68 @@ def test_api_reports_missing_fields_failure(client):
     assert 'google_maps' in data['errors']
 
 
+def test_api_reports_accepts_new_report_type_injured(client):
+    payload = {
+        'report_type': 'injured',
+        'description': 'Dog appears injured near the terminal.',
+        'location_method': 'both',
+        'location': {
+            'lat': 9.3639,
+            'lng': 122.8072,
+            'maps_url': 'https://maps.google.com/?q=9.3639,122.8072',
+            'address': {
+                'street': 'Rizal St.',
+                'barangay': 'Poblacion',
+                'city': 'Bayawan',
+            },
+        },
+        'contact_name': 'Juan Dela Cruz',
+        'contact_phone': '09123456789',
+    }
+
+    response = client.post(
+        reverse('api_reports'),
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    report = Report.objects.get(id=data['report_id'])
+    assert report.report_type == Report.ReportType.INJURED
+
+
+def test_api_reports_accepts_neglect_alias_to_welfare(client):
+    payload = {
+        'report_type': 'neglect',
+        'description': 'Possible welfare concern for the dog.',
+        'location_method': 'both',
+        'location': {
+            'lat': 9.3639,
+            'lng': 122.8072,
+            'maps_url': 'https://maps.google.com/?q=9.3639,122.8072',
+            'address': {
+                'street': 'Rizal St.',
+                'barangay': 'Poblacion',
+                'city': 'Bayawan',
+            },
+        },
+        'contact_name': 'Juan Dela Cruz',
+        'contact_phone': '09123456789',
+    }
+
+    response = client.post(
+        reverse('api_reports'),
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    report = Report.objects.get(id=data['report_id'])
+    assert report.report_type == Report.ReportType.WELFARE
+
+
 def test_api_reports_missing_address_failure(client):
     payload = {
         'report_type': 'dangerous',

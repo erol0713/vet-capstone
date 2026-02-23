@@ -34,6 +34,19 @@ def test_unread_count_in_context(client):
     assert b'Notifications' in response.content
 
 
+def test_navbar_notification_bell_dropdown(client):
+    user = create_user()
+    Notification.objects.create(user=user, title='Bell Test', message='Navbar dropdown item')
+    client.force_login(user)
+
+    response = client.get('/notifications/')
+
+    assert response.status_code == 200
+    assert b'bi-bell' in response.content
+    assert b'notificationsMenu' in response.content
+    assert b'Bell Test' in response.content
+
+
 def test_mark_read(client):
     user = create_user()
     notification = Notification.objects.create(user=user, title='Alert', message='Test')

@@ -4,36 +4,129 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
 {% endblock %}
 
 {% block content %}
-  <section class="profile-section">
+  <section class="section-pad dashboard-shell">
     <div class="container">
-      {% with dashboard_title="Welcome back, "|add:request.user.username %}
-        {% include 'partials/page_header.html' with eyebrow="User Portal" title=dashboard_title subtitle="Manage your adoption requests, reclaim tickets, and notifications." %}
-      {% endwith %}
+      <div class="dashboard-hero card-elevated">
+        <div class="row g-3 align-items-stretch">
+          <div class="col-lg-8">
+            <p class="dashboard-eyebrow mb-2">User Portal</p>
+            <h1 class="dashboard-title mb-2">Welcome back, {{ request.user.username }}</h1>
+            <p class="dashboard-subtitle mb-3">
+              Report stray incidents, register your dog, and track adoption or reclaim requests from one place.
+            </p>
+            <p class="dashboard-subhint mb-0">Use the Main Services section below to continue your task.</p>
+          </div>
 
-      <div class="profile-card">
-        <div class="profile-card-header">
-          <div>
-            <p class="profile-card-eyebrow">Verification</p>
-            <h3 class="profile-card-title">Account Status</h3>
+          <div class="col-lg-4">
+            <aside class="dashboard-verify-card h-100">
+              <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                <div class="dashboard-verify-label">Account Verification</div>
+                {% if request.user.is_verified %}
+                  <span class="status-pill status-pill--success">Verified</span>
+                {% else %}
+                  <span class="status-pill status-pill--warning">Pending</span>
+                {% endif %}
+              </div>
+              {% if request.user.is_verified %}
+                <p class="dashboard-verify-text mb-2">Your account is verified. All owner features are available.</p>
+              {% else %}
+                <p class="dashboard-verify-text mb-2">Verification is needed to unlock protected actions and faster request handling.</p>
+              {% endif %}
+              <p class="dashboard-verify-meta mb-3">
+                {% if request.user.is_verified %}Setup complete{% else %}Setup in progress{% endif %}
+              </p>
+              <a class="btn btn-sm btn-primary w-100" href="{% url 'verification_status' %}">
+                {% if request.user.is_verified %}View Verification{% else %}Complete Verification{% endif %}
+              </a>
+            </aside>
           </div>
         </div>
-        <div class="profile-status-item">
-          <div class="profile-status-label">Current Status</div>
-          <div>
-            {% if request.user.is_verified %}
-              <span class="status-pill status-pill--success">Verified</span>
-            {% else %}
-              <span class="status-pill status-pill--warning">Pending</span>
-            {% endif %}
-          </div>
+      </div>
+
+      <div class="dashboard-section-head mt-4">
+        <h2 class="h5 mb-1">Your Activity Snapshot</h2>
+        <p class="dashboard-muted mb-0">Quick summary of your actions in the system.</p>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <article class="dashboard-kpi card-soft">
+            <div class="dashboard-kpi-top mb-1">
+              <span class="dashboard-kpi-icon"><i class="bi bi-clipboard-data"></i></span>
+              <span class="dashboard-kpi-label">Reports Submitted</span>
+            </div>
+            <div class="dashboard-kpi-value">{{ report_count }}</div>
+            <p class="dashboard-kpi-note mb-0">Reports you sent to help monitor stray dogs.</p>
+          </article>
         </div>
-        <div class="mt-3">
-          <a class="btn btn-outline-primary btn-sm profile-btn" href="{% url 'verification_status' %}">
-            View verification
+        <div class="col-md-4">
+          <article class="dashboard-kpi card-soft">
+            <div class="dashboard-kpi-top mb-1">
+              <span class="dashboard-kpi-icon"><i class="bi bi-heart"></i></span>
+              <span class="dashboard-kpi-label">Adoption Requests</span>
+            </div>
+            <div class="dashboard-kpi-value">{{ adoption_count }}</div>
+            <p class="dashboard-kpi-note mb-0">Adoption applications linked to your account.</p>
+          </article>
+        </div>
+        <div class="col-md-4">
+          <article class="dashboard-kpi card-soft">
+            <div class="dashboard-kpi-top mb-1">
+              <span class="dashboard-kpi-icon"><i class="bi bi-arrow-repeat"></i></span>
+              <span class="dashboard-kpi-label">Reclaim Requests</span>
+            </div>
+            <div class="dashboard-kpi-value">{{ reclaim_count }}</div>
+            <p class="dashboard-kpi-note mb-0">Requests for reclaiming an impounded dog.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="card-soft dashboard-services mt-3">
+        <h2 class="dashboard-block-title">Main Services</h2>
+        <p class="dashboard-muted mb-3">Choose a service to continue.</p>
+        <div class="dashboard-service-grid">
+          <a class="dashboard-service-card" href="{% url 'dogs_public_list' %}">
+            <span class="dashboard-service-icon"><i class="bi bi-house-heart"></i></span>
+            <div>
+              <h3 class="dashboard-service-title">Dog Pound</h3>
+              <p class="dashboard-service-text mb-0">Browse dogs currently in care.</p>
+            </div>
+            <i class="bi bi-arrow-right-short dashboard-service-arrow"></i>
+          </a>
+          <a class="dashboard-service-card" href="{% url 'dogs_register' %}">
+            <span class="dashboard-service-icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+              <h3 class="dashboard-service-title">Register Dog</h3>
+              <p class="dashboard-service-text mb-0">Add your dog information.</p>
+            </div>
+            <i class="bi bi-arrow-right-short dashboard-service-arrow"></i>
+          </a>
+          <a class="dashboard-service-card" href="{% url 'reports_public_list' %}">
+            <span class="dashboard-service-icon"><i class="bi bi-clipboard-data"></i></span>
+            <div>
+              <h3 class="dashboard-service-title">Reports</h3>
+              <p class="dashboard-service-text mb-0">View and submit community reports.</p>
+            </div>
+            <i class="bi bi-arrow-right-short dashboard-service-arrow"></i>
+          </a>
+          <a class="dashboard-service-card" href="{% url 'adoption_my_requests' %}">
+            <span class="dashboard-service-icon"><i class="bi bi-arrow-left-right"></i></span>
+            <div>
+              <h3 class="dashboard-service-title">My Requests</h3>
+              <p class="dashboard-service-text mb-0">Track adoption and reclaim progress.</p>
+            </div>
+            <i class="bi bi-arrow-right-short dashboard-service-arrow"></i>
+          </a>
+          <a class="dashboard-service-card" href="{% url 'profile' %}">
+            <span class="dashboard-service-icon"><i class="bi bi-person-circle"></i></span>
+            <div>
+              <h3 class="dashboard-service-title">Profile</h3>
+              <p class="dashboard-service-text mb-0">Update your account details.</p>
+            </div>
+            <i class="bi bi-arrow-right-short dashboard-service-arrow"></i>
           </a>
         </div>
       </div>

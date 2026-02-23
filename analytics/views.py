@@ -72,6 +72,7 @@ def build_month_labels(start, end):
 @login_required
 @role_required('ADMIN', 'STAFF')
 def dashboard(request):
+    today = timezone.localdate()
     range_start, range_end = get_date_range(request)
 
     captures_range = Dog.objects.filter(
@@ -135,6 +136,7 @@ def dashboard(request):
         'vaccinations_total': VaccinationRecord.objects.filter(
             vaccinated_date__range=(range_start, range_end)
         ).count(),
+        'today': today,
         'range_start': range_start,
         'range_end': range_end,
         'range_label': format_date_range(range_start, range_end),

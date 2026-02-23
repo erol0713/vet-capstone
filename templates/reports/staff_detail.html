@@ -4,128 +4,209 @@
 {% block title %}Report Detail{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/reports.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/reports-staff-detail.css' %}" />
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Staff" title="Report Detail" subtitle="Review and update report information." %}
+  <section class="section-pad report-staff-page">
+    <div class="container report-staff-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="Report Detail" subtitle="Review report details, update status, and maintain an internal audit trail." %}
 
-    <div class="row g-4">
-      <div class="col-lg-8">
-        <div class="card-elevated p-4">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h2 class="h5 mb-0">Report #{{ report.id }}</h2>
-            <span class="status-pill status-pill--info">{{ report.get_status_display }}</span>
-          </div>
-          <p class="mb-1"><strong>Type:</strong> {{ report.get_report_type_display }}</p>
-          <p class="mb-1"><strong>Location:</strong> {{ report.location }}</p>
-          {% if report.maps_url %}
-            <p class="mb-1">
-              <strong>Maps URL:</strong>
-              <a href="{{ report.maps_url }}" target="_blank" rel="noopener">Open map</a>
-            </p>
-          {% endif %}
-          {% if report.latitude and report.longitude %}
-            <p class="mb-1">
-              <strong>Coordinates:</strong>
-              {{ report.latitude }}, {{ report.longitude }}
-            </p>
-          {% endif %}
-          {% if report.address_json %}
-            <p class="mb-1"><strong>Address:</strong></p>
-            <div class="small text-muted mb-2">
-              {% if report.address_json.street %}{{ report.address_json.street }}{% endif %}
-              {% if report.address_json.barangay %}, {{ report.address_json.barangay }}{% endif %}
-              {% if report.address_json.city %}, {{ report.address_json.city }}{% endif %}
-              {% if report.address_json.province %}, {{ report.address_json.province }}{% endif %}
-              {% if report.address_json.postal_code %}, {{ report.address_json.postal_code }}{% endif %}
-            </div>
-            {% if report.address_json.notes %}
-              <p class="mb-1"><strong>Address Notes:</strong> {{ report.address_json.notes }}</p>
-            {% endif %}
-          {% endif %}
-          <p class="mb-1"><strong>Description:</strong> {{ report.description|default:"-" }}</p>
-          <p class="mb-1"><strong>Notes:</strong> {{ report.notes|default:"-" }}</p>
-          <p class="mb-1"><strong>Submitted:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
-
-          <div class="mt-4">
-            <div class="small text-muted mb-2">Status Timeline</div>
-            <div class="report-status-timeline">
-              <div class="report-status-item"><span>Open</span>{% if report.status == 'OPEN' %}<span class="status-pill status-pill--info">Current</span>{% endif %}</div>
-              <div class="report-status-item"><span>In Review</span>{% if report.status == 'IN_REVIEW' %}<span class="status-pill status-pill--warning">Current</span>{% endif %}</div>
-              <div class="report-status-item"><span>Resolved</span>{% if report.status == 'RESOLVED' %}<span class="status-pill status-pill--success">Current</span>{% endif %}</div>
-              <div class="report-status-item"><span>Captured</span>{% if report.status == 'CAPTURED' %}<span class="status-pill status-pill--success">Current</span>{% endif %}</div>
-            </div>
-          </div>
-
-          {% if report.photo %}
-            <div class="mt-3">
-              {% with filename=report.photo.name|lower %}
-                {% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}
-                  <video class="img-fluid rounded" controls preload="metadata">
-                    <source src="{{ report.photo.url }}">
-                    Your browser does not support the video tag.
-                  </video>
-                {% else %}
-                  <img class="img-fluid rounded" src="{{ report.photo.url }}" alt="Report photo" loading="lazy">
-                {% endif %}
-              {% endwith %}
-            </div>
-          {% endif %}
+      <div class="card-soft report-staff-guide mb-3">
+        <div class="report-staff-guide-title">Workflow</div>
+        <div class="report-staff-guide-steps">
+          <span class="report-staff-guide-step">1. Review report details and location</span>
+          <span class="report-staff-guide-step">2. Update status and add notes</span>
+          <span class="report-staff-guide-step">3. Mark as resolved when action is complete</span>
         </div>
       </div>
 
-      <div class="col-lg-4">
-        <div class="card-elevated p-4">
-          <h3 class="h6 mb-3">Reporter Info</h3>
-          <p class="mb-1">
-            <strong>Contact Name:</strong>
-            {{ report.contact_name|default:"-" }}
-          </p>
-          <p class="mb-1">
-            <strong>Contact Phone:</strong>
-            {{ report.contact_phone|default:"-" }}
-          </p>
-          <p class="mb-1">
-            <strong>Contact Email:</strong>
-            {{ report.contact_email|default:"-" }}
-          </p>
-          <p class="mb-1">
-            <strong>Account:</strong>
-            {% if report.reported_by %}
-              {{ report.reported_by.email }}
-            {% else %}
-              Anonymous
+      <div class="row g-3">
+        <div class="col-lg-8">
+          <article class="card-elevated report-detail-main">
+            <header class="report-detail-head">
+              <div>
+                <p class="report-detail-kicker mb-1">Report #{{ report.id }}</p>
+                <h2 class="h5 mb-1">{{ report.get_report_type_display }}</h2>
+                <p class="text-muted small mb-0">Submitted {{ report.created_at|date:"M d, Y H:i" }}</p>
+              </div>
+              {% if report.status == 'OPEN' %}
+                <span class="status-pill status-pill--info">{{ report.get_status_display }}</span>
+              {% elif report.status == 'IN_REVIEW' %}
+                <span class="status-pill status-pill--warning">{{ report.get_status_display }}</span>
+              {% elif report.status == 'RESOLVED' %}
+                <span class="status-pill status-pill--success">{{ report.get_status_display }}</span>
+              {% else %}
+                <span class="status-pill status-pill--muted">{{ report.get_status_display }}</span>
+              {% endif %}
+            </header>
+
+            <div class="report-detail-grid">
+              <div class="report-detail-box">
+                <span class="report-detail-label">Location</span>
+                <p class="mb-0">{{ report.location|default:"-" }}</p>
+              </div>
+              <div class="report-detail-box">
+                <span class="report-detail-label">Coordinates</span>
+                <p class="mb-0">
+                  {% if report.latitude and report.longitude %}
+                    {{ report.latitude }}, {{ report.longitude }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+
+            {% if report.address_json %}
+              <section class="report-detail-section">
+                <h3 class="report-section-title">Address Details</h3>
+                <p class="mb-1">
+                  {% if report.address_json.street %}{{ report.address_json.street }}{% endif %}
+                  {% if report.address_json.barangay %}, {{ report.address_json.barangay }}{% endif %}
+                  {% if report.address_json.city %}, {{ report.address_json.city }}{% endif %}
+                  {% if report.address_json.province %}, {{ report.address_json.province }}{% endif %}
+                  {% if report.address_json.postal_code %}, {{ report.address_json.postal_code }}{% endif %}
+                </p>
+                {% if report.address_json.notes %}
+                  <p class="text-muted mb-0">{{ report.address_json.notes }}</p>
+                {% endif %}
+              </section>
             {% endif %}
-          </p>
+
+            <section class="report-detail-section">
+              <h3 class="report-section-title">Report Description</h3>
+              <p class="mb-0">{{ report.description|default:"No description provided." }}</p>
+            </section>
+
+            <section class="report-detail-section">
+              <h3 class="report-section-title">Internal Notes</h3>
+              <p class="mb-0">{{ report.notes|default:"No internal notes yet." }}</p>
+            </section>
+
+            <section class="report-detail-section">
+              <h3 class="report-section-title">Status Timeline</h3>
+              <div class="report-timeline">
+                <div class="report-timeline-item {% if report.status == 'OPEN' %}is-current{% endif %}">
+                  <span class="report-timeline-dot"></span>
+                  <span>Open</span>
+                </div>
+                <div class="report-timeline-item {% if report.status == 'IN_REVIEW' %}is-current{% elif report.status == 'RESOLVED' or report.status == 'CLOSED' %}is-complete{% endif %}">
+                  <span class="report-timeline-dot"></span>
+                  <span>In Review</span>
+                </div>
+                <div class="report-timeline-item {% if report.status == 'RESOLVED' %}is-current{% elif report.status == 'CLOSED' %}is-complete{% endif %}">
+                  <span class="report-timeline-dot"></span>
+                  <span>Resolved</span>
+                </div>
+                <div class="report-timeline-item {% if report.status == 'CLOSED' %}is-current{% endif %}">
+                  <span class="report-timeline-dot"></span>
+                  <span>Closed</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="report-detail-section report-detail-section--media">
+              <div class="d-flex justify-content-between align-items-center gap-2 mb-2 flex-wrap">
+                <h3 class="report-section-title mb-0">Captured Evidence</h3>
+                {% if report.maps_url %}
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ report.maps_url }}" target="_blank" rel="noopener">
+                    Open Map
+                  </a>
+                {% endif %}
+              </div>
+
+              {% if report.latitude and report.longitude %}
+                <div class="report-map-frame mb-2">
+                  <iframe
+                    title="Report map location"
+                    loading="lazy"
+                    src="https://maps.google.com/maps?q={{ report.latitude }},{{ report.longitude }}&output=embed"
+                  ></iframe>
+                </div>
+              {% endif %}
+
+              {% if report.photo %}
+                {% with filename=report.photo.name|lower %}
+                  {% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}
+                    <video class="report-media" controls preload="metadata">
+                      <source src="{{ report.photo.url }}" />
+                      Your browser does not support the video tag.
+                    </video>
+                  {% else %}
+                    <img class="report-media" src="{{ report.photo.url }}" alt="Report photo" loading="lazy" />
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <div class="card-outline p-3 text-muted text-center">No photo or video uploaded.</div>
+              {% endif %}
+            </section>
+          </article>
         </div>
-        <div class="card-elevated p-4 mt-3">
-          <h3 class="h6 mb-3">Update Status</h3>
-          <form method="post" action="{% url 'reports_update_status' report.id %}">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label class="form-label">Status</label>
-              {{ form.status }}
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Internal Notes</label>
-              {{ form.notes }}
-            </div>
-            <button class="btn btn-primary w-100" type="submit">Save</button>
-          </form>
-          <form method="post" action="{% url 'reports_update_status' report.id %}" class="mt-2">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="captured">
-            <button class="btn btn-outline-success w-100" type="submit">
-              Mark Captured (Done)
-            </button>
-          </form>
-        </div>
-        <div class="mt-3">
-          <a class="btn btn-outline-secondary w-100" href="{% url 'reports_staff_list' %}">Back to list</a>
+
+        <div class="col-lg-4">
+          <div class="report-side-stack">
+            <aside class="card-elevated report-side-card">
+              <h3 class="h6 mb-3">Reporter Info</h3>
+              <div class="report-side-list">
+                <div class="report-side-row">
+                  <span>Contact Name</span>
+                  <strong>{{ report.contact_name|default:"-" }}</strong>
+                </div>
+                <div class="report-side-row">
+                  <span>Contact Phone</span>
+                  <strong>{{ report.contact_phone|default:"-" }}</strong>
+                </div>
+                <div class="report-side-row">
+                  <span>Contact Email</span>
+                  <strong>{{ report.contact_email|default:"-" }}</strong>
+                </div>
+                <div class="report-side-row">
+                  <span>Account</span>
+                  <strong>
+                    {% if report.reported_by %}
+                      {{ report.reported_by.email }}
+                    {% else %}
+                      Anonymous
+                    {% endif %}
+                  </strong>
+                </div>
+              </div>
+            </aside>
+
+            <aside class="card-elevated report-side-card">
+              <h3 class="h6 mb-2">Update Status</h3>
+              <p class="text-muted small mb-3">Use this form to update report progress and internal notes.</p>
+              <form method="post" action="{% url 'reports_update_status' report.id %}" class="report-update-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                  {{ form.status }}
+                  {% if form.status.help_text %}
+                    <div class="form-text">{{ form.status.help_text }}</div>
+                  {% endif %}
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                  {{ form.notes }}
+                  {% if form.notes.help_text %}
+                    <div class="form-text">{{ form.notes.help_text }}</div>
+                  {% endif %}
+                </div>
+                <button class="btn btn-primary w-100" type="submit">Save Changes</button>
+              </form>
+              <form method="post" action="{% url 'reports_update_status' report.id %}" class="mt-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="captured" />
+                <button class="btn btn-outline-success w-100" type="submit">Mark Resolved (Captured)</button>
+              </form>
+            </aside>
+
+            <a class="btn btn-outline-secondary w-100" href="{% url 'reports_staff_list' %}">Back to list</a>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

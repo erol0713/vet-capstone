@@ -4,160 +4,247 @@
 {% block title %}My Profile{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/profile.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/profile-modern.css' %}" />
 {% endblock %}
 
 {% block content %}
-  <div class="container profile-shell">
-    {% include 'partials/page_header.html' with eyebrow="Account" title="My Profile" subtitle="Manage your account, verification, and registered dogs." %}
+  <section class="profile-sample-page py-2 py-md-3">
+    <div class="container">
+      <div class="row g-2 align-items-start">
+        <div class="col-lg-4">
+          <div class="card profile-sample-card profile-sample-left text-center">
+            <div class="profile-sample-avatar mx-auto">
+              {% if request.user.profile.profile_photo %}
+                <img src="{{ request.user.profile.profile_photo.url }}" alt="Profile photo" loading="lazy" />
+              {% else %}
+                <span>{{ request.user.username|first|upper }}</span>
+              {% endif %}
+            </div>
+            <h1 class="h4 mb-1">{{ request.user.profile.full_name|default:request.user.username }}</h1>
+            <p class="mb-1 profile-sample-subtitle">{{ request.user.get_role_display }}</p>
+            <p class="mb-2 profile-sample-subtitle">{{ request.user.profile.address|default:"Address not set" }}</p>
 
-    <div class="row g-3">
-      {% if request.user.role == 'OWNER' %}
-        <div class="col-12">
-          <div class="card-soft p-3">
-            <h2 class="profile-section-title">Compliance</h2>
-            <div class="profile-metric-grid">
-              <div class="profile-metric">
-                <div class="profile-metric-label">Offense Count</div>
-                <div class="profile-metric-value">{{ request.user.profile.offense_count }}</div>
-              </div>
-              <div class="profile-metric">
-                <div class="profile-metric-label">Status Badge</div>
-                <div>
-                  {% if request.user.profile.status_badge == 'GREEN' %}
-                    <span class="status-pill status-pill--success">Green</span>
-                  {% elif request.user.profile.status_badge == 'ORANGE' %}
-                    <span class="status-pill status-pill--warning">Orange</span>
-                  {% else %}
-                    <span class="status-pill status-pill--danger">Red</span>
-                  {% endif %}
-                </div>
-              </div>
+            <div class="profile-sample-badges mb-2">
+              <span class="profile-sample-badge">Joined {{ request.user.date_joined|date:"M Y" }}</span>
+              {% if request.user.role == 'OWNER' %}
+                <span class="profile-sample-badge">{{ request.user.profile.status_badge|default:"Regular" }}</span>
+              {% else %}
+                <span class="profile-sample-badge">Verified: {% if request.user.is_verified %}Yes{% else %}No{% endif %}</span>
+              {% endif %}
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center">
+              <button
+                type="button"
+                class="btn btn-primary btn-sm px-3"
+                data-bs-toggle="modal"
+                data-bs-target="#profileEditModal"
+              >
+                Edit Profile
+              </button>
+              {% if request.user.role == 'OWNER' %}
+                <a class="btn btn-outline-light btn-sm px-3" href="{% url 'verification_status' %}">Verification</a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card profile-sample-card profile-sample-links mt-3">
+            <div class="profile-link-row">
+              <i class="bi bi-envelope"></i>
+              <span>{{ request.user.email }}</span>
+            </div>
+            <div class="profile-link-row">
+              <i class="bi bi-person"></i>
+              <span>{{ request.user.username }}</span>
+            </div>
+            <div class="profile-link-row">
+              <i class="bi bi-calendar2"></i>
+              <span>{{ request.user.date_joined|date:"M d, Y" }}</span>
+            </div>
+            <div class="profile-link-row">
+              <i class="bi bi-geo-alt"></i>
+              <span>{{ request.user.profile.address|default:"Address not set" }}</span>
             </div>
           </div>
         </div>
-      {% endif %}
 
-      <div class="col-12">
-        <div class="profile-card">
-          <div class="mb-4">
-            <h2 class="profile-section-title">Account</h2>
-            <div class="profile-info-list">
-              <div class="profile-info-line">
-                <span class="profile-info-label">Email</span>
-                <span class="profile-info-value">{{ request.user.email }}</span>
+        <div class="col-lg-8">
+          <div class="card profile-sample-card profile-sample-info">
+            <div class="profile-info-row">
+              <span>Full Name</span>
+              <strong>{{ request.user.profile.full_name|default:"-" }}</strong>
+            </div>
+            <div class="profile-info-row">
+              <span>Email</span>
+              <strong>{{ request.user.email }}</strong>
+            </div>
+            <div class="profile-info-row">
+              <span>Gender</span>
+              <strong>{{ request.user.profile.gender|default:"-" }}</strong>
+            </div>
+            <div class="profile-info-row">
+              <span>Age</span>
+              <strong>{{ request.user.profile.age|default:"-" }}</strong>
+            </div>
+            <div class="profile-info-row">
+              <span>Birthday</span>
+              <strong>{{ request.user.profile.birthday|date:"M d, Y"|default:"-" }}</strong>
+            </div>
+            <div class="profile-info-row">
+              <span>Address</span>
+              <strong>{{ request.user.profile.address|default:"-" }}</strong>
+            </div>
+          </div>
+
+          <div class="row g-2 mt-0">
+            <div class="col-md-6">
+              <div class="card profile-sample-card profile-progress-card h-100">
+                <div class="profile-progress-header mb-2">
+                  <div>
+                    <p class="profile-progress-title mb-0">Profile Completion</p>
+                    <p class="profile-progress-caption mb-0">Account readiness</p>
+                  </div>
+                  <span class="profile-progress-icon" aria-hidden="true">
+                    <i class="bi bi-clipboard-check"></i>
+                  </span>
+                </div>
+
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Full Name</span>
+                    <span class="profile-progress-percent">{% if request.user.profile.full_name %}100%{% else %}20%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.profile.full_name %}100{% else %}20{% endif %}%"></div></div>
+                </div>
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Address</span>
+                    <span class="profile-progress-percent">{% if request.user.profile.address %}100%{% else %}20%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.profile.address %}100{% else %}20{% endif %}%"></div></div>
+                </div>
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Birthday</span>
+                    <span class="profile-progress-percent">{% if request.user.profile.birthday %}100%{% else %}20%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.profile.birthday %}100{% else %}20{% endif %}%"></div></div>
+                </div>
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Profile Photo</span>
+                    <span class="profile-progress-percent">{% if request.user.profile.profile_photo %}100%{% else %}30%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.profile.profile_photo %}100{% else %}30{% endif %}%"></div></div>
+                </div>
               </div>
-              <div class="profile-info-line">
-                <span class="profile-info-label">Username</span>
-                <span class="profile-info-value">{{ request.user.username }}</span>
-              </div>
-              <div class="profile-info-line">
-                <span class="profile-info-label">Role</span>
-                <span class="profile-info-value">{{ request.user.get_role_display }}</span>
-              </div>
-              <div class="profile-info-line">
-                <span class="profile-info-label">Joined</span>
-                <span class="profile-info-value">{{ request.user.date_joined|date:"M d, Y" }}</span>
+            </div>
+
+            <div class="col-md-6">
+              <div class="card profile-sample-card profile-progress-card h-100">
+                <div class="profile-progress-header mb-2">
+                  <div>
+                    <p class="profile-progress-title mb-0">Verification Status</p>
+                    <p class="profile-progress-caption mb-0">Identity and account checks</p>
+                  </div>
+                  <span class="profile-progress-icon" aria-hidden="true">
+                    <i class="bi bi-shield-check"></i>
+                  </span>
+                </div>
+
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Email</span>
+                    <span class="profile-progress-percent">{% if request.user.email_verified %}100%{% else %}30%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.email_verified %}100{% else %}30{% endif %}%"></div></div>
+                </div>
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Face</span>
+                    <span class="profile-progress-percent">{% if request.user.face_verification and request.user.face_verification.status == 'APPROVED' %}100%{% elif request.user.face_verification and request.user.face_verification.status == 'PENDING' %}60%{% else %}20%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.face_verification and request.user.face_verification.status == 'APPROVED' %}100{% elif request.user.face_verification and request.user.face_verification.status == 'PENDING' %}60{% else %}20{% endif %}%"></div></div>
+                </div>
+                <div class="profile-progress-item">
+                  <div class="profile-progress-line">
+                    <span class="profile-progress-label">Account</span>
+                    <span class="profile-progress-percent">{% if request.user.is_verified %}100%{% else %}40%{% endif %}</span>
+                  </div>
+                  <div class="progress profile-progress-track"><div class="progress-bar profile-progress-fill" style="width:{% if request.user.is_verified %}100{% else %}40{% endif %}%"></div></div>
+                </div>
+                {% if request.user.role == 'OWNER' %}
+                  <div class="profile-progress-meta mt-2">
+                    <span class="profile-progress-label">Compliance Badge</span>
+                    {% if request.user.profile.status_badge == 'GREEN' %}
+                      <span class="profile-progress-status is-green">Green</span>
+                    {% elif request.user.profile.status_badge == 'ORANGE' %}
+                      <span class="profile-progress-status is-orange">Orange</span>
+                    {% else %}
+                      <span class="profile-progress-status is-red">{{ request.user.profile.status_badge|default:'-' }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="profile-progress-note">Offenses: {{ request.user.profile.offense_count }}</div>
+                {% endif %}
               </div>
             </div>
           </div>
 
           {% if request.user.role == 'OWNER' %}
-            <div class="mb-4">
-              <h2 class="profile-section-title">Verification</h2>
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  Email Verification
-                  {% if request.user.email_verified %}
-                    <span class="status-pill status-pill--success">Verified</span>
-                  {% else %}
-                    <span class="status-pill status-pill--warning">Pending</span>
-                  {% endif %}
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  Face Verification
-                  {% if request.user.face_verification and request.user.face_verification.status == 'APPROVED' %}
-                    <span class="status-pill status-pill--success">Approved</span>
-                  {% elif request.user.face_verification and request.user.face_verification.status == 'PENDING' %}
-                    <span class="status-pill status-pill--warning">Under Review</span>
-                  {% else %}
-                    <span class="status-pill status-pill--muted">Not Submitted</span>
-                  {% endif %}
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  Account Verified
-                  {% if request.user.is_verified %}
-                    <span class="status-pill status-pill--success">Verified</span>
-                  {% else %}
-                    <span class="status-pill status-pill--muted">Pending</span>
-                  {% endif %}
-                </li>
-              </ul>
-              <div class="mt-2">
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'verification_status' %}">
-                  Manage Verification
-                </a>
-              </div>
-            </div>
-          {% endif %}
-
-          <div class="mb-4">
-            <h2 class="profile-section-title">Profile</h2>
-            <form method="post" class="profile-form profile-form--compact">
-              {% csrf_token %}
-              <div class="row g-2">
-                <div class="col-md-6">
-                  <label class="form-label">Full Name</label>
-                  {{ form.full_name }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Age</label>
-                  {{ form.age }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Birthday</label>
-                  {{ form.birthday }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Address</label>
-                  {{ form.address }}
-                </div>
-              </div>
-              <button class="btn btn-sm btn-primary mt-2" type="submit">Save Profile</button>
-            </form>
-          </div>
-
-          {% if request.user.role == 'OWNER' %}
-            <div>
+            <div class="card profile-sample-card profile-dogs-wrap mt-3">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <h2 class="profile-section-title mb-0">My Dogs</h2>
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'dogs_register' %}">
-                  Add Dog
-                </a>
+                <p class="profile-progress-title mb-0">My Registered Dogs</p>
+                <a class="btn btn-sm btn-primary" href="{% url 'dogs_register' %}">Add Dog</a>
               </div>
               <div class="row g-2">
                 {% for dog in registered_dogs %}
-                  <div class="col-md-6 col-lg-4">
+                  <div class="col-md-6 col-xl-4">
                     <div class="profile-dog-card h-100">
-                      {% if dog.photo %}
-                        <img class="profile-dog-image" src="{{ dog.photo.url }}" alt="Dog photo" loading="lazy">
-                      {% else %}
-                        <div class="profile-dog-placeholder">
-                          <i class="bi bi-image"></i>
-                          <span>No photo</span>
-                        </div>
-                      {% endif %}
+                      <a class="profile-dog-media-link" href="{% url 'dogs_owner_detail' dog.pk %}">
+                        {% if dog.photo %}
+                          <img
+                            class="profile-dog-image"
+                            src="{{ dog.photo.url }}"
+                            alt="{{ dog.name|default:'Dog' }} photo"
+                            loading="lazy"
+                          >
+                        {% else %}
+                          <div class="profile-dog-placeholder">
+                            <i class="bi bi-image"></i>
+                            <span>No photo</span>
+                          </div>
+                        {% endif %}
+                      </a>
                       <div class="card-body">
                         <h3 class="profile-dog-title">
-                          {% if dog.name %}
-                            {{ dog.name }}
-                          {% else %}
-                            {{ dog.color|default:"Unnamed Dog" }}
-                          {% endif %}
+                          <a class="profile-dog-name-link" href="{% url 'dogs_owner_detail' dog.pk %}">
+                            {% if dog.name %}
+                              {{ dog.name }}
+                            {% else %}
+                              {{ dog.color|default:"Unnamed Dog" }}
+                            {% endif %}
+                          </a>
                         </h3>
-                        <p class="profile-dog-meta">Sex: {{ dog.sex|default:"-" }}</p>
-                        <p class="profile-dog-meta">Age: {{ dog.age_estimate|default:"-" }}</p>
-                        <p class="profile-dog-meta">Barangay: {{ dog.barangay|default:"-" }}</p>
+                        {% if dog.latest_vaccination %}
+                          <div class="small text-white-50 mt-1">
+                            Vaccinated:
+                            {% if dog.latest_vaccination.vaccinated_date %}
+                              {{ dog.latest_vaccination.vaccinated_date|date:"M d, Y" }}
+                            {% elif dog.latest_vaccination.from_owner_proof %}
+                              Proof confirmed
+                            {% else %}
+                              -
+                            {% endif %}
+                          </div>
+                          <div class="small text-white-50">
+                            Expires:
+                            {% if dog.latest_vaccination.expiration_date %}
+                              {{ dog.latest_vaccination.expiration_date|date:"M d, Y" }}
+                            {% else %}
+                              -
+                            {% endif %}
+                          </div>
+                        {% endif %}
                         {% if not dog.capture_datetime and not dog.surrender_datetime %}
                           <form class="mt-2" method="post" action="{% url 'dogs_delete' dog.pk %}">
                             {% csrf_token %}
@@ -174,12 +261,75 @@
                     </div>
                   </div>
                 {% empty %}
-                  <div class="col-12 text-muted">No registered dogs yet.</div>
+                  <div class="col-12 text-white-50 small">No registered dogs yet.</div>
                 {% endfor %}
               </div>
             </div>
           {% endif %}
         </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal fade" id="profileEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <form method="post" enctype="multipart/form-data" class="profile-form profile-form--compact">
+          {% csrf_token %}
+          {{ form.full_name.as_hidden }}
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Profile</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label" for="{{ form.first_name.id_for_label }}">First Name</label>
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="{{ form.middle_name.id_for_label }}">Middle Name</label>
+                {{ form.middle_name }}
+                {{ form.middle_name.errors }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="{{ form.last_name.id_for_label }}">Last Name (Surname)</label>
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.gender.id_for_label }}">Gender</label>
+                {{ form.gender }}
+                {{ form.gender.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.birthday.id_for_label }}">Birthday</label>
+                {{ form.birthday }}
+                {{ form.birthday.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.age.id_for_label }}">Age</label>
+                {{ form.age }}
+                {{ form.age.errors }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ form.address.id_for_label }}">Address</label>
+                {{ form.address }}
+                {{ form.address.errors }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ form.profile_photo.id_for_label }}">Profile Photo</label>
+                {{ form.profile_photo }}
+                {{ form.profile_photo.errors }}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -188,9 +338,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       const birthday = document.getElementById('id_birthday');
       const age = document.getElementById('id_age');
-      if (!birthday || !age) return;
+      const fullName = document.getElementById('id_full_name');
+      const lastName = document.getElementById('id_last_name');
+      const middleName = document.getElementById('id_middle_name');
+      const firstName = document.getElementById('id_first_name');
 
       const computeAge = () => {
+        if (!birthday || !age) return;
         if (!birthday.value) {
           age.value = '';
           return;
@@ -205,9 +359,37 @@
         age.value = Math.max(years, 0);
       };
 
-      birthday.addEventListener('change', computeAge);
-      birthday.addEventListener('input', computeAge);
-      computeAge();
+      const computeFullName = () => {
+        if (!fullName) return;
+        const parts = [
+          firstName ? firstName.value.trim() : '',
+          middleName ? middleName.value.trim() : '',
+          lastName ? lastName.value.trim() : '',
+        ].filter(Boolean);
+        const built = parts.join(' ');
+        fullName.value = built;
+      };
+
+      if (birthday && age) {
+        birthday.addEventListener('change', computeAge);
+        birthday.addEventListener('input', computeAge);
+        computeAge();
+      }
+
+      [lastName, middleName, firstName].forEach((field) => {
+        if (field) {
+          field.addEventListener('input', computeFullName);
+          field.addEventListener('change', computeFullName);
+        }
+      });
+      computeFullName();
+
+      {% if form.errors %}
+        const modalEl = document.getElementById('profileEditModal');
+        if (modalEl && window.bootstrap) {
+          window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+      {% endif %}
     });
   </script>
 {% endblock %}

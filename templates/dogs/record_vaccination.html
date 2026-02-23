@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Vaccination{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-2">Record Vaccination</h2>
+            <p class="text-muted mb-3">
+              Save vaccination details for {{ dog.name|default:"Unnamed Dog" }} (Owner: {{ dog.owner.username }}).
+            </p>
+
+            {% if latest_vaccination %}
+              <div class="alert alert-light border small">
+                <strong>Latest record:</strong>
+                {% if latest_vaccination.vaccinated_date %}
+                  Vaccinated on {{ latest_vaccination.vaccinated_date|date:"M d, Y" }}
+                {% else %}
+                  Owner proof confirmed
+                {% endif %}
+                {% if latest_vaccination.expiration_date %}
+                  , expires on {{ latest_vaccination.expiration_date|date:"M d, Y" }}.
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <form method="post">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label" for="{{ form.vaccine_type.id_for_label }}">Vaccine Type</label>
+                  {{ form.vaccine_type }}
+                  {{ form.vaccine_type.errors }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.vaccinated_date.id_for_label }}">Vaccination Date</label>
+                  {{ form.vaccinated_date }}
+                  {{ form.vaccinated_date.errors }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.expiration_date.id_for_label }}">Expiration Date</label>
+                  {{ form.expiration_date }}
+                  {{ form.expiration_date.errors }}
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    {{ form.from_owner_proof }}
+                    <label class="form-check-label" for="{{ form.from_owner_proof.id_for_label }}">
+                      {{ form.from_owner_proof.label }}
+                    </label>
+                  </div>
+                  <div class="form-text">
+                    Enable this if the owner already has verified vaccination proof and only expiration date is being encoded.
+                  </div>
+                  {{ form.from_owner_proof.errors }}
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-primary" type="submit">Save Vaccination Record</button>
+                <a class="btn btn-outline-secondary" href="{% url 'dogs_registered_detail' dog.pk %}">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

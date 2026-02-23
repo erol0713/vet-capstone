@@ -14,21 +14,21 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
               Email Verification
               {% if request.user.email_verified %}
-                <span class="status-pill status-pill--success">Verified</span>
+                {% include 'partials/status_pill.html' with label="Verified" tone="success" %}
               {% else %}
-                <span class="status-pill status-pill--warning">Pending</span>
+                {% include 'partials/status_pill.html' with label="Pending" tone="warning" %}
               {% endif %}
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               Face Verification
               {% if request.user.face_verification and request.user.face_verification.status == 'APPROVED' %}
-                <span class="status-pill status-pill--success">Approved</span>
+                {% include 'partials/status_pill.html' with label="Approved" tone="success" %}
               {% elif request.user.face_verification and request.user.face_verification.status == 'PENDING' %}
-                <span class="status-pill status-pill--warning">Under Review</span>
+                {% include 'partials/status_pill.html' with label="Under Review" tone="warning" %}
               {% elif request.user.face_verification and request.user.face_verification.status == 'REJECTED' %}
-                <span class="status-pill status-pill--danger">Rejected</span>
+                {% include 'partials/status_pill.html' with label="Rejected" tone="danger" %}
               {% else %}
-                <span class="status-pill status-pill--muted">Not Submitted</span>
+                {% include 'partials/status_pill.html' with label="Not Submitted" tone="muted" %}
               {% endif %}
             </li>
           </ul>

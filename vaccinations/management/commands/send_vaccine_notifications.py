@@ -21,32 +21,45 @@ class Command(BaseCommand):
             dog__owner__isnull=False,
         )
         for record in expiring:
+            vaccine_name = record.vaccine_type or "vaccine"
+            action_url = reverse('dogs_owner_detail', kwargs={'pk': record.dog_id})
             Notification.objects.create(
                 user=record.dog.owner,
                 title="Vaccine Expiration Reminder",
                 message=(
-                    f"Your dog's {record.vaccine_type} vaccine will expire on "
-                    f"{record.expiration_date}."
+                    f"Your dog's {vaccine_name} vaccine will expire on "
+                    f"{record.expiration_date}. Please prepare for renewal scheduling."
                 ),
-                action_url=reverse('profile'),
+                action_url=action_url,
             )
             record.notified_three_days = True
             record.save(update_fields=['notified_three_days'])
 
-        expires_today = VaccinationRecord.objects.filter(
-            expiration_date=today,
+        expires_or_expired = VaccinationRecord.objects.filter(
+            expiration_date__lte=today,
             notified_on_expiry=False,
             dog__owner__isnull=False,
         )
-        for record in expires_today:
+        for record in expires_or_expired:
+            vaccine_name = record.vaccine_type or "vaccine"
+            action_url = reverse('dogs_owner_detail', kwargs={'pk': record.dog_id})
+            if record.expiration_date == today:
+                title = "Vaccine Expired"
+                message = (
+                    f"Your dog's {vaccine_name} vaccine expires today "
+                    f"({record.expiration_date}). Request a new vaccination schedule if needed."
+                )
+            else:
+                title = "Vaccination Expired"
+                message = (
+                    f"Your dog's {vaccine_name} vaccine already expired on "
+                    f"{record.expiration_date}. Please request a new vaccination schedule."
+                )
             Notification.objects.create(
                 user=record.dog.owner,
-                title="Vaccine Expired",
-                message=(
-                    f"Your dog's {record.vaccine_type} vaccine expires today "
-                    f"({record.expiration_date})."
-                ),
-                action_url=reverse('profile'),
+                title=title,
+                message=message,
+                action_url=action_url,
             )
             record.notified_on_expiry = True
             record.save(update_fields=['notified_on_expiry'])

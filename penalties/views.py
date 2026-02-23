@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -12,6 +13,7 @@ from users.decorators import role_required
 from .models import PenaltyCase, PenaltyChecklistItem, PenaltyLineItem
 
 LODGING_CODE = 'S28_2_LODGING_DAILY'
+LODGING_DESCRIPTION = 'Lodging Fee'
 
 @login_required
 @role_required('ADMIN', 'STAFF')
@@ -48,7 +50,9 @@ def checklist(request):
 
             selected_codes = request.POST.getlist('items')
             with transaction.atomic():
-                PenaltyLineItem.objects.filter(case=case).delete()
+                PenaltyLineItem.objects.filter(case=case).exclude(
+                    description=LODGING_DESCRIPTION
+                ).delete()
                 total = Decimal('0.00')
                 for code in selected_codes:
                     item = items_by_code.get(code)
@@ -65,7 +69,15 @@ def checklist(request):
                         total=item.default_amount,
                     )
                     total += line.total
-                case.total_amount = total
+                lodging_total = (
+                    PenaltyLineItem.objects.filter(
+                        case=case, description=LODGING_DESCRIPTION
+                    )
+                    .aggregate(total=Sum('total'))
+                    .get('total')
+                    or Decimal('0.00')
+                )
+                case.total_amount = total + lodging_total
                 case.save(update_fields=['total_amount'])
                 messages.success(request, 'Penalty checklist saved.')
 
@@ -86,9 +98,10 @@ def checklist(request):
 
     selected_codes = set()
     lodging_days = 0
-    lodging_rate = lodging_item.default_amount if lodging_item else Decimal('200.00')
+    lodging_rate = lodging_item.default_amount if lodging_item else Decimal('500.00')
     lodging_selected = False
     checklist_total = Decimal('0.00')
+    lodging_total = Decimal('0.00')
     grand_total = Decimal('0.00')
     if case:
         checklist_items = {item.id: item for item in items}
@@ -108,7 +121,9 @@ def checklist(request):
                 lodging_selected = True
         if lodging_selected and lodging_item:
             selected_codes.add(LODGING_CODE)
-        grand_total = checklist_total
+        if lodging_selected:
+            lodging_total = lodging_rate * lodging_days
+        grand_total = checklist_total + lodging_total
 
     context = {
         'items': items,
@@ -120,6 +135,7 @@ def checklist(request):
         'lodging_rate': lodging_rate,
         'lodging_code': LODGING_CODE,
         'checklist_total': checklist_total,
+        'lodging_total': lodging_total,
         'grand_total': grand_total,
     }
     return render(request, 'penalties/checklist.html', context)

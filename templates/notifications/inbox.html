@@ -4,42 +4,53 @@
 {% block title %}Notifications{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/notifications.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Updates" title="Notifications" subtitle="All updates for your account." %}
-    <div class="action-bar justify-content-end mb-3">
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'notifications_read_all' %}">
-        Mark all read
-      </a>
-    </div>
+  <section class="section-pad notifications-page">
+    <div class="container">
+      {% include 'partials/page_header.html' with eyebrow="Updates" title="Notifications" subtitle="All updates for your account." %}
 
-    <div class="notifications-panel">
-      <div class="data-list">
-        {% for item in items %}
-          <a
-            class="data-list-item notifications-item text-decoration-none"
-            href="{% url 'notifications_read' item.pk %}"
-          >
-            <div>
-              <div class="fw-semibold">{{ item.title }}</div>
-              <div class="text-muted small">{{ item.message }}</div>
-              <div class="small text-muted mt-1">{{ item.created_at|date:"M d, Y H:i" }}</div>
-            </div>
-            <div>
-              {% if not item.is_read %}
-                <span class="status-pill status-pill--success">New</span>
-              {% else %}
-                <span class="status-pill status-pill--muted">Read</span>
-              {% endif %}
-            </div>
-          </a>
-        {% empty %}
-          {% include 'partials/empty_state.html' with title="No notifications yet." message="You'll see system updates and alerts here." %}
-        {% endfor %}
+      <div class="notifications-shell card-elevated">
+        <div class="notifications-shell-head">
+          <div class="notifications-summary">
+            <span class="badge-soft">Total: {{ items|length }}</span>
+            <span class="badge-soft {% if unread_notifications %}badge-soft--success{% endif %}">
+              Unread: {{ unread_notifications|default:0 }}
+            </span>
+          </div>
+          {% if unread_notifications %}
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'notifications_read_all' %}">
+              Mark all read
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="notifications-list">
+          {% for item in items %}
+            <a
+              class="notification-row text-decoration-none {% if not item.is_read %}is-unread{% endif %}"
+              href="{% url 'notifications_read' item.pk %}"
+            >
+              <div class="notification-row-main">
+                <div class="notification-row-head">
+                  <h2 class="notification-row-title">{{ item.title }}</h2>
+                  {% if not item.is_read %}
+                    <span class="status-pill status-pill--success">New</span>
+                  {% endif %}
+                </div>
+                <p class="notification-row-message">{{ item.message }}</p>
+                <p class="notification-row-time mb-0">{{ item.created_at|date:"M d, Y h:i A" }}</p>
+              </div>
+              <i class="bi bi-chevron-right notification-row-arrow" aria-hidden="true"></i>
+            </a>
+          {% empty %}
+            {% include 'partials/empty_state.html' with title="No notifications yet." message="You'll see system updates and alerts here." %}
+          {% endfor %}
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}
+

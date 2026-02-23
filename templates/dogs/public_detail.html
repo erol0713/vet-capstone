@@ -4,73 +4,135 @@
 {% block title %}Dog Details{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/dogs.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/dog-public-detail.css' %}">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-lg-8">
-        <div class="dog-detail-card">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <div>
-              <h2 class="h4 mb-1">{{ dog.name|default:"Unnamed Dog" }}</h2>
-              <div class="d-flex flex-wrap gap-2">
-                <span class="status-pill status-pill--info">{{ dog.get_status_display }}</span>
-                {% if dog.capture_datetime %}
-                  <span class="badge-soft">Reclaim</span>
-                {% elif dog.surrender_datetime %}
-                  <span class="badge-soft badge-soft--success">Adopt</span>
-                {% endif %}
+  <section class="section-pad dog-detail-section">
+    <div class="container">
+      <div class="action-bar dog-detail-toolbar mb-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'dogs_public_list' %}">
+          <i class="bi bi-arrow-left"></i>
+          Back to Dog Pound
+        </a>
+      </div>
+
+      <div class="row g-3 align-items-start dog-detail-layout">
+        <div class="col-lg-8">
+          <article class="dog-detail-card dog-detail-card--modern">
+            <header class="dog-detail-header">
+              <div>
+                <span class="page-header-eyebrow">Dog Profile</span>
+                <h1 class="dog-detail-title">{{ dog.name|default:"Unnamed Dog" }}</h1>
+              </div>
+              <span class="dog-chip">{{ dog.barangay|default:"Not set" }}</span>
+            </header>
+
+            <div class="dog-detail-labels">
+              <span class="status-pill status-pill--info">{{ dog.get_status_display }}</span>
+              {% if dog.capture_datetime %}
+                <span class="badge-soft">Reclaim Eligible</span>
+              {% elif dog.surrender_datetime %}
+                <span class="badge-soft badge-soft--success">For Adoption</span>
+              {% else %}
+                <span class="badge-soft">Intake</span>
+              {% endif %}
+            </div>
+
+            <div class="dog-detail-media">
+              {% if dog.photo %}
+                <img class="dog-detail-photo" src="{{ dog.photo.url }}" alt="Dog photo of {{ dog.name|default:'Unnamed Dog' }}" loading="lazy">
+              {% else %}
+                <div class="dog-detail-photo-placeholder">
+                  <i class="bi bi-image"></i>
+                  <span>No photo available</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="row g-3 dog-detail-meta-grid">
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-check2-circle"></i> Status</span>
+                  <span class="dog-detail-meta-value">{{ dog.get_status_display }}</span>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-geo-alt"></i> Barangay</span>
+                  <span class="dog-detail-meta-value">{{ dog.barangay|default:"Not set" }}</span>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-gender-ambiguous"></i> Sex</span>
+                  <span class="dog-detail-meta-value">{{ dog.sex|default:"Not set" }}</span>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-hourglass-split"></i> Age Estimate</span>
+                  <span class="dog-detail-meta-value">{{ dog.age_estimate|default:"Not set" }}</span>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-palette"></i> Color</span>
+                  <span class="dog-detail-meta-value">{{ dog.color|default:"Not set" }}</span>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-calendar-event"></i> Captured</span>
+                  <span class="dog-detail-meta-value">{{ dog.capture_datetime|date:"M j, Y g:i a"|default:"Not available" }}</span>
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="dog-detail-meta-item">
+                  <span class="dog-detail-meta-label"><i class="bi bi-calendar-check"></i> Surrendered</span>
+                  <span class="dog-detail-meta-value">{{ dog.surrender_datetime|date:"M j, Y g:i a"|default:"Not available" }}</span>
+                </div>
               </div>
             </div>
-            <span class="dog-chip">{{ dog.barangay|default:"Not set" }}</span>
-          </div>
-          {% if dog.photo %}
-            <img class="img-fluid rounded mb-3" src="{{ dog.photo.url }}" alt="Dog photo" loading="lazy">
-          {% endif %}
-          <div class="row g-3">
-            <div class="col-md-6">
-              <p class="mb-1"><strong>Status:</strong> {{ dog.get_status_display }}</p>
-              <p class="mb-1"><strong>Barangay:</strong> {{ dog.barangay|default:"Not set" }}</p>
-              <p class="mb-1"><strong>Captured at:</strong> {{ dog.capture_datetime|default:"-" }}</p>
-              <p class="mb-1"><strong>Surrendered at:</strong> {{ dog.surrender_datetime|default:"-" }}</p>
+
+            <div class="dog-detail-notes">
+              <h2 class="h6 mb-2">Notes from intake team</h2>
+              <p class="mb-0 text-muted">{{ dog.notes|default:"No notes yet." }}</p>
             </div>
-            <div class="col-md-6">
-              <p class="mb-1"><strong>Sex:</strong> {{ dog.sex|default:"Not set" }}</p>
-              <p class="mb-1"><strong>Age Estimate:</strong> {{ dog.age_estimate|default:"Not set" }}</p>
-              <p class="mb-1"><strong>Color:</strong> {{ dog.color|default:"Not set" }}</p>
-            </div>
-          </div>
-          <div class="mt-3">
-            <p class="text-muted mb-0">{{ dog.notes|default:"No notes yet." }}</p>
-          </div>
+          </article>
         </div>
-      </div>
-      <div class="col-lg-4">
-        <div class="dog-detail-sidebar">
-          <h5 class="mb-2">Next Steps</h5>
-          <p class="text-muted small mb-3">
-            Logged-in, verified users can reserve adoption or reclaim.
-          </p>
-          <div class="action-bar">
-            {% if request.user.is_authenticated %}
-              {% if can_adopt or can_reserve %}
-                <a class="btn btn-primary w-100" href="{% url 'adoption_reserve' dog.pk %}">
-                  Reserve Adoption
-                </a>
+
+        <div class="col-lg-4">
+          <aside class="dog-detail-sidebar dog-detail-sidebar--modern">
+            <h2 class="h5 mb-2">Next Steps</h2>
+            <p class="text-muted small mb-3">
+              Logged-in, verified users can reserve adoption or reclaim this dog.
+            </p>
+            <ol class="dog-next-steps">
+              <li>Review the profile details and notes.</li>
+              <li>Choose the correct action for your case.</li>
+              <li>Track updates from your My Requests page.</li>
+            </ol>
+            <div class="d-grid gap-2">
+              {% if request.user.is_authenticated %}
+                {% if can_adopt or can_reserve %}
+                  <a class="btn btn-primary" href="{% url 'adoption_reserve' dog.pk %}">
+                    Reserve Adoption
+                  </a>
+                {% endif %}
+                {% if can_reclaim %}
+                  <a class="btn btn-outline-secondary" href="{% url 'adoption_reclaim' dog.pk %}">
+                    Request Reclaim
+                  </a>
+                {% endif %}
+              {% else %}
+                <a class="btn btn-primary" href="{% url 'login' %}">Login to request</a>
               {% endif %}
-              {% if can_reclaim %}
-                <a class="btn btn-outline-secondary w-100" href="{% url 'adoption_reclaim' dog.pk %}">
-                  Request Reclaim
-                </a>
-              {% endif %}
-            {% else %}
-              <a class="btn btn-primary w-100" href="{% url 'login' %}">Login to request</a>
-            {% endif %}
-          </div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}
+

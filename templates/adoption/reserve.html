@@ -1,16 +1,30 @@
 {% extends 'base.html' %}
 
-{% block title %}Reserve Adoption{% endblock %}
+{% block title %}
+  {% if direct_adopt %}
+    Adopt Now
+  {% else %}
+    Reserve Adoption
+  {% endif %}
+{% endblock %}
 
 {% block content %}
-  <div class="container">
+  <div class="container section-pad">
+    {% if direct_adopt %}
+      {% include 'partials/page_header.html' with eyebrow="Owner Portal" title="Adopt Now" subtitle="Submit your adoption request for this available dog." %}
+    {% else %}
+      {% include 'partials/page_header.html' with eyebrow="Owner Portal" title="Reserve Adoption" subtitle="Submit your reservation while the reclaim window is active." %}
+    {% endif %}
     <div class="row justify-content-center">
       <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h2 class="h5 mb-2">Reserve Adoption</h2>
-            <p class="text-muted">Dog: {{ dog.name|default:"Unnamed Dog" }}</p>
-            {% if reclaim_deadline %}
+        <div class="card-elevated">
+          <div class="card-body">
+            <p class="text-muted mb-3">Dog: {{ dog.name|default:"Unnamed Dog" }}</p>
+            {% if direct_adopt %}
+              <div class="alert alert-success small">
+                This dog is ready for adoption. Submit your request and staff will schedule your appointment.
+              </div>
+            {% elif reclaim_deadline %}
               <div class="alert alert-info small">
                 This dog is still under the reclaim window. If unclaimed by
                 {{ reclaim_deadline|date:"M d, Y H:i" }}, you will be notified to confirm adoption.
@@ -18,7 +32,13 @@
             {% endif %}
             <form method="post">
               {% csrf_token %}
-              <button class="btn btn-primary w-100" type="submit">Submit Request</button>
+              <button class="btn btn-primary w-100" type="submit">
+                {% if direct_adopt %}
+                  Adopt Now
+                {% else %}
+                  Submit Request
+                {% endif %}
+              </button>manage
             </form>
           </div>
         </div>

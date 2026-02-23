@@ -1,0 +1,116 @@
+<nav class="app-navbar" id="siteNavbar" aria-label="Primary navigation">
+  <div class="container app-navbar__inner">
+    <a class="app-navbar__brand" href="{% url 'home' %}" aria-label="Go to homepage">
+      <span class="app-navbar__brand-dot" aria-hidden="true"></span>
+      <span>Bayawan Vet Office</span>
+    </a>
+
+    <button
+      class="app-navbar__toggle"
+      id="navToggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="siteNavMenu"
+      aria-label="Open navigation menu"
+    >
+      <span class="app-navbar__toggle-line" aria-hidden="true"></span>
+      <span class="app-navbar__toggle-line" aria-hidden="true"></span>
+      <span class="app-navbar__toggle-line" aria-hidden="true"></span>
+    </button>
+
+    <div class="app-navbar__menu" id="siteNavMenu">
+      <ul class="app-navbar__list">
+        {% if request.user.is_authenticated %}
+          <li class="app-navbar__item">
+            {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' %}
+              <a class="app-navbar__link" data-nav-link href="{% url 'analytics_dashboard' %}">Analytics</a>
+            {% else %}
+              <a class="app-navbar__link" data-nav-link href="{% url 'dashboard' %}">Dashboard</a>
+            {% endif %}
+          </li>
+
+          {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' %}
+            <li class="app-navbar__item app-navbar__dropdown" data-dropdown>
+              <button
+                class="app-navbar__link app-navbar__dropdown-toggle"
+                type="button"
+                data-dropdown-toggle
+                aria-expanded="false"
+                aria-controls="manageDogsMenu"
+              >
+                Manage Dogs
+              </button>
+              <ul class="app-navbar__dropdown-menu" id="manageDogsMenu">
+                <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'dogs_manage_list' %}">Intake</a></li>
+                <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'dogs_registered_by_owner' %}">Registered Dogs</a></li>
+                <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'dogs_vaccination_requests' %}">Vaccinations</a></li>
+                <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'reports_staff_list' %}">Reports</a></li>
+                <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'adoption_staff_queue' %}">Adoption Queue</a></li>
+              </ul>
+            </li>
+            <li class="app-navbar__item">
+              <a class="app-navbar__link" data-nav-link href="{% url 'admin_user_management' %}">Verifications</a>
+            </li>
+            <li class="app-navbar__item">
+              <a class="app-navbar__link" data-nav-link href="{% url 'penalties_checklist' %}">Penalties</a>
+            </li>
+          {% else %}
+            <li class="app-navbar__item">
+              <a class="app-navbar__link" data-nav-link href="{% url 'adoption_my_requests' %}">My Requests</a>
+            </li>
+          {% endif %}
+        {% endif %}
+
+        {% if not request.user.is_authenticated or request.user.role == 'OWNER' %}
+          <li class="app-navbar__item">
+            <a class="app-navbar__link" data-nav-link href="{% url 'dogs_public_list' %}">Dog Pound</a>
+          </li>
+        {% endif %}
+
+        {% if request.user.is_authenticated and request.user.role == 'OWNER' %}
+          <li class="app-navbar__item">
+            <a class="app-navbar__link" data-nav-link href="{% url 'reports_public_list' %}">Reports</a>
+          </li>
+        {% endif %}
+
+        {% if not request.user.is_authenticated %}
+          <li class="app-navbar__item">
+            <a class="app-navbar__link" data-nav-link href="{% url 'login' %}">Login</a>
+          </li>
+          <li class="app-navbar__item">
+            <a class="app-navbar__link" data-nav-link href="{% url 'register' %}">Register</a>
+          </li>
+        {% endif %}
+
+        {% include 'partials/notification_dropdown.html' with menu_id='notificationsMenu' %}
+
+        {% if request.user.is_authenticated %}
+          <li class="app-navbar__item app-navbar__dropdown" data-dropdown>
+            <button
+              class="app-navbar__link app-navbar__dropdown-toggle app-navbar__profile-toggle"
+              type="button"
+              data-dropdown-toggle
+              aria-expanded="false"
+              aria-controls="profileMenu"
+            >
+              <div class="app-navbar__avatar">
+                {% if request.user.profile.profile_photo %}
+                  <img src="{{ request.user.profile.profile_photo.url }}" alt="{{ request.user.username }}" class="app-navbar__avatar-img">
+                {% else %}
+                  <span class="app-navbar__avatar-fallback">
+                    {{ request.user.username|first|upper }}
+                  </span>
+                {% endif %}
+              </div>
+              <span class="app-navbar__username">{{ request.user.username }}</span>
+            </button>
+            <ul class="app-navbar__dropdown-menu" id="profileMenu">
+              <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'profile' %}">Profile</a></li>
+              <li><a class="app-navbar__dropdown-link" data-nav-link href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

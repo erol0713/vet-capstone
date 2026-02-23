@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ dog.name|default:"Dog" }} - My Dog Profile{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dog-owner-detail.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container dog-shell owner-dog-shell">
+    {% with page_title=dog.name|default:"Unnamed Dog" %}
+      {% include 'partials/page_header.html' with eyebrow="Owner" title=page_title subtitle="My Dog Profile" %}
+    {% endwith %}
+
+    <div class="card-elevated owner-dog-profile">
+      <div class="owner-dog-toolbar owner-dog-toolbar--inside">
+        <button
+          type="button"
+          class="btn owner-dog-btn owner-dog-btn--primary"
+          data-bs-toggle="modal"
+          data-bs-target="#ownerDogEditModal"
+        >
+          <i class="bi bi-pencil-square"></i>
+          Edit Dog Profile
+        </button>
+        <a class="btn owner-dog-btn owner-dog-btn--outline" href="{% url 'profile' %}">
+          <i class="bi bi-arrow-left"></i>
+          Back to Profile
+        </a>
+      </div>
+
+      <div class="owner-dog-hero">
+        <div class="owner-dog-hero-media">
+          {% if dog.photo %}
+            <img class="owner-dog-avatar" src="{{ dog.photo.url }}" alt="{{ dog.name|default:'Dog' }} photo" loading="lazy">
+          {% else %}
+            <div class="owner-dog-avatar owner-dog-avatar--placeholder">
+              <i class="bi bi-image"></i>
+              <span>No photo</span>
+            </div>
+          {% endif %}
+        </div>
+        <div class="owner-dog-hero-body">
+          <p class="owner-dog-kicker">Registered Dog Profile</p>
+          <h2 class="owner-dog-name">{{ dog.name|default:"Unnamed Dog" }}</h2>
+          <div class="owner-dog-badges">
+            {% if dog.vaccination_status == 'VACCINATED' %}
+              {% include 'partials/status_pill.html' with label="Vaccinated" tone="success" %}
+            {% elif dog.vaccination_status == 'UNVACCINATED' %}
+              {% include 'partials/status_pill.html' with label="Unvaccinated" tone="warning" %}
+            {% else %}
+              {% include 'partials/status_pill.html' with label="Vaccination Not Set" tone="muted" %}
+            {% endif %}
+          </div>
+          <div class="owner-dog-facts">
+            <div class="owner-dog-fact">
+              <span class="owner-dog-fact-label"><i class="bi bi-gender-ambiguous"></i> Sex</span>
+              <span class="owner-dog-fact-value">{{ dog.sex|default:"Unknown" }}</span>
+            </div>
+            <div class="owner-dog-fact">
+              <span class="owner-dog-fact-label"><i class="bi bi-calendar-event"></i> Age</span>
+              <span class="owner-dog-fact-value">{{ dog.age_estimate|default:"Age not set" }}</span>
+            </div>
+            <div class="owner-dog-fact">
+              <span class="owner-dog-fact-label"><i class="bi bi-palette2"></i> Color</span>
+              <span class="owner-dog-fact-value">{{ dog.color|default:"Color not set" }}</span>
+            </div>
+            <div class="owner-dog-fact">
+              <span class="owner-dog-fact-label"><i class="bi bi-geo-alt"></i> Barangay</span>
+              <span class="owner-dog-fact-value">{{ dog.barangay|default:"Barangay not set" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="owner-dog-panels">
+        <section class="owner-dog-panel">
+          <h3 class="owner-dog-panel-title">Profile Information</h3>
+          <div class="owner-dog-row-list">
+            <div class="owner-dog-row"><span class="owner-dog-row-label">Name</span><span class="owner-dog-row-value">{{ dog.name|default:"-" }}</span></div>
+            <div class="owner-dog-row"><span class="owner-dog-row-label">Sex</span><span class="owner-dog-row-value">{{ dog.sex|default:"-" }}</span></div>
+            <div class="owner-dog-row"><span class="owner-dog-row-label">Age</span><span class="owner-dog-row-value">{{ dog.age_estimate|default:"-" }}</span></div>
+            <div class="owner-dog-row"><span class="owner-dog-row-label">Color</span><span class="owner-dog-row-value">{{ dog.color|default:"-" }}</span></div>
+            <div class="owner-dog-row"><span class="owner-dog-row-label">Barangay</span><span class="owner-dog-row-value">{{ dog.barangay|default:"-" }}</span></div>
+          </div>
+        </section>
+
+        <section class="owner-dog-panel">
+          <h3 class="owner-dog-panel-title">Health and Vaccination</h3>
+          <div class="owner-dog-row-list">
+            <div class="owner-dog-row">
+              <span class="owner-dog-row-label">Vaccination Status</span>
+              <span class="owner-dog-row-value">
+                {% if dog.vaccination_status == 'VACCINATED' %}
+                  {% include 'partials/status_pill.html' with label="Vaccinated" tone="success" %}
+                {% elif dog.vaccination_status == 'UNVACCINATED' %}
+                  {% include 'partials/status_pill.html' with label="Unvaccinated" tone="warning" %}
+                {% else %}
+                  {% include 'partials/status_pill.html' with label="Not Set" tone="muted" %}
+                {% endif %}
+              </span>
+            </div>
+            <div class="owner-dog-row"><span class="owner-dog-row-label">Vaccination Request</span><span class="owner-dog-row-value">{% if dog.vaccination_request %}Yes{% else %}No{% endif %}</span></div>
+            <div class="owner-dog-row">
+              <span class="owner-dog-row-label">Schedule</span>
+              <span class="owner-dog-row-value">
+                {% if dog.vaccination_schedule %}
+                  {{ dog.vaccination_schedule|date:"M d, Y H:i" }}
+                {% else %}
+                  -
+                {% endif %}
+              </span>
+            </div>
+            <div class="owner-dog-row">
+              <span class="owner-dog-row-label">Vaccinated Date</span>
+              <span class="owner-dog-row-value">
+                {% if latest_vaccination and latest_vaccination.vaccinated_date %}
+                  {{ latest_vaccination.vaccinated_date|date:"M d, Y" }}
+                {% elif latest_vaccination and latest_vaccination.from_owner_proof %}
+                  Owner proof confirmed
+                {% else %}
+                  -
+                {% endif %}
+              </span>
+            </div>
+            <div class="owner-dog-row">
+              <span class="owner-dog-row-label">Vaccine Expiration</span>
+              <span class="owner-dog-row-value">
+                {% if latest_vaccination and latest_vaccination.expiration_date %}
+                  {{ latest_vaccination.expiration_date|date:"M d, Y" }}
+                  {% if is_vaccine_expired %}
+                    {% include 'partials/status_pill.html' with label="Expired" tone="danger" %}
+                  {% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          {% if is_vaccine_expired %}
+            <div class="alert alert-warning mt-3 mb-0">
+              This vaccine has expired. Request a new vaccination schedule to renew protection.
+              <form method="post" action="{% url 'dogs_request_vaccination_schedule' dog.pk %}" class="mt-2">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-warning" type="submit">Request New Vaccination Schedule</button>
+              </form>
+            </div>
+          {% endif %}
+        </section>
+
+        {% if dog.notes %}
+          <section class="owner-dog-panel owner-dog-panel--full">
+            <h3 class="owner-dog-panel-title">Notes</h3>
+            <p class="owner-dog-notes mb-0">{{ dog.notes }}</p>
+          </section>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="modal fade owner-dog-edit-modal"
+    id="ownerDogEditModal"
+    tabindex="-1"
+    aria-labelledby="ownerDogEditModalLabel"
+    aria-hidden="true"
+    data-open-on-load="{% if open_edit_modal %}1{% else %}0{% endif %}"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 mb-0" id="ownerDogEditModalLabel">Edit Dog Profile</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" action="{% url 'dogs_owner_edit' dog.pk %}" enctype="multipart/form-data" class="owner-dog-edit-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.name.id_for_label }}">Name (optional)</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.sex.id_for_label }}">Sex</label>
+                {{ form.sex }}
+                {{ form.sex.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.age_estimate.id_for_label }}">Age Estimate</label>
+                {{ form.age_estimate }}
+                {{ form.age_estimate.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.color.id_for_label }}">Color</label>
+                {{ form.color }}
+                {{ form.color.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.barangay.id_for_label }}">Barangay</label>
+                {{ form.barangay }}
+                {{ form.barangay.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.vaccination_status.id_for_label }}">Vaccination Status</label>
+                {{ form.vaccination_status }}
+                {{ form.vaccination_status.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.vaccination_proof.id_for_label }}">Vaccination Proof</label>
+                {{ form.vaccination_proof }}
+                {{ form.vaccination_proof.errors }}
+              </div>
+              <div class="col-md-6">
+                <div class="d-flex align-items-center gap-2 mt-4">
+                  {{ form.vaccination_request }}
+                  <label class="form-label mb-0" for="{{ form.vaccination_request.id_for_label }}">Request Vaccination Appointment</label>
+                </div>
+                {{ form.vaccination_request.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ form.photo.id_for_label }}">Photo</label>
+                {{ form.photo }}
+                {{ form.photo.errors }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+                {{ form.notes }}
+                {{ form.notes.errors }}
+              </div>
+            </div>
+            <div class="owner-dog-edit-actions">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalElement = document.getElementById('ownerDogEditModal');
+      if (
+        modalElement &&
+        modalElement.dataset.openOnLoad === '1' &&
+        typeof bootstrap !== 'undefined'
+      ) {
+        bootstrap.Modal.getOrCreateInstance(modalElement).show();
+      }
+    });
+  </script>
+{% endblock %}

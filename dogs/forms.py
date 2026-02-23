@@ -1,6 +1,8 @@
 from django import forms
 from django.utils import timezone
 
+from vaccinations.models import VaccinationRecord
+
 from .models import Dog
 
 BAYAWAN_BARANGAYS = [
@@ -210,4 +212,53 @@ class VaccinationScheduleForm(forms.Form):
             timezone.datetime.combine(date_value, timezone.datetime.min.time())
         ) + timezone.timedelta(hours=hours, minutes=minutes)
         cleaned['vaccination_schedule'] = appointment_dt
+        return cleaned
+
+
+class VaccinationRecordForm(forms.ModelForm):
+    class Meta:
+        model = VaccinationRecord
+        fields = (
+            'vaccine_type',
+            'vaccinated_date',
+            'expiration_date',
+            'from_owner_proof',
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['vaccine_type'].widget.attrs.setdefault('class', 'form-control')
+        self.fields['vaccine_type'].initial = (
+            self.initial.get('vaccine_type') or 'General Vaccine'
+        )
+        self.fields['vaccinated_date'].widget = forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'}
+        )
+        self.fields['expiration_date'].widget = forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'}
+        )
+        self.fields['from_owner_proof'].widget.attrs.setdefault('class', 'form-check-input')
+        self.fields['from_owner_proof'].label = 'Owner already provided valid proof'
+
+    def clean(self):
+        cleaned = super().clean()
+        vaccinated_date = cleaned.get('vaccinated_date')
+        expiration_date = cleaned.get('expiration_date')
+        from_owner_proof = cleaned.get('from_owner_proof')
+
+        if not expiration_date:
+            self.add_error('expiration_date', 'Enter the vaccine expiration date.')
+
+        if not from_owner_proof and not vaccinated_date:
+            self.add_error(
+                'vaccinated_date',
+                'Enter the vaccination date, or confirm owner proof for expiration-only entry.',
+            )
+
+        if vaccinated_date and expiration_date and expiration_date < vaccinated_date:
+            self.add_error(
+                'expiration_date',
+                'Expiration date cannot be earlier than the vaccination date.',
+            )
+
         return cleaned

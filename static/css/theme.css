@@ -1,22 +1,14 @@
+/* Global design system (minimal Apple-like baseline) */
 :root {
-  /* Typography */
-  --font-sans: "Source Sans 3", "Segoe UI", sans-serif;
-  --font-serif: "Source Serif 4", "Georgia", serif;
-
-  /* Palette (60-30-10) */
-  --color-surface: #ffffff;
-  --color-surface-2: #f7f7f7;
-  --color-warm: #ffffff;
-  --color-warm-2: #f7f7f7;
-  --color-primary: #1f8a5b;
-  --color-primary-600: #166d46;
-  --color-ink: #0b2b26;
-  --color-muted: #5f6f68;
-  --color-border: #e3e7e1;
-
-  /* Shadows */
-  --shadow-1: 0 8px 20px rgba(11, 43, 38, 0.08);
-  --shadow-2: 0 18px 40px rgba(11, 43, 38, 0.12);
+  /* Required tokens */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --border: #e5e5e7;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --primary: #0071e3;
+  --primary-hover: #005ecb;
+  --focus: #2f8cff;
 
   /* Radius */
   --radius-sm: 8px;
@@ -24,16 +16,28 @@
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 2.5rem;
+  /* 4px / 8px spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
 
-  /* Type scale */
+  /* One subtle shadow level */
+  --shadow-1: 0 1px 3px rgba(29, 29, 31, 0.08);
+  --shadow-2: var(--shadow-1);
+
+  /* Motion */
+  --transition: 200ms ease;
+  --transition-fast: var(--transition);
+  --control-height: 44px;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-sans);
+  --font-display: var(--font-sans);
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -43,14 +47,31 @@
   --text-3xl: 2rem;
   --text-4xl: 2.5rem;
 
+  /* Legacy aliases (keeps existing page CSS working) */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: #f8f8fa;
+  --color-surface-3: #f0f0f4;
+  --color-warm: #f8f8fa;
+  --color-warm-2: #f0f0f4;
+  --color-border: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-600: var(--primary-hover);
+  --color-primary-700: #004b9c;
+  --color-accent: #d2d2d7;
+  --color-focus: var(--focus);
+
   /* Bootstrap overrides */
-  --bs-primary: var(--color-primary);
-  --bs-secondary: #6c757d;
+  --bs-primary: var(--primary);
+  --bs-secondary: #6e6e73;
   --bs-body-font-family: var(--font-sans);
-  --bs-body-color: var(--color-ink);
-  --bs-border-color: var(--color-border);
-  --bs-link-color: var(--color-primary-600);
-  --bs-link-hover-color: #0f5e3c;
+  --bs-body-color: var(--text);
+  --bs-body-bg: var(--bg);
+  --bs-border-color: var(--border);
+  --bs-link-color: var(--primary);
+  --bs-link-hover-color: var(--primary-hover);
 }
 
 *,
@@ -61,41 +82,73 @@
 
 body {
   font-family: var(--font-sans);
-  color: var(--color-ink);
-  background: var(--color-surface);
+  color: var(--text);
+  background: var(--bg);
+  font-size: var(--text-base);
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--font-serif);
-  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 h4,
 h5,
 h6 {
   font-family: var(--font-sans);
+  color: var(--text);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+}
+
+h3 {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+}
+
+small {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.form-label,
+label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--space-2);
 }
 
 a {
-  color: var(--bs-link-color);
-  text-decoration-color: rgba(31, 138, 91, 0.4);
+  color: var(--primary);
+  text-decoration-color: rgba(0, 113, 227, 0.35);
   text-underline-offset: 0.2em;
 }
 
 a:hover {
-  color: var(--bs-link-hover-color);
+  color: var(--primary-hover);
 }
 
 ::selection {
-  background: var(--color-warm-2);
-  color: var(--color-ink);
+  background: #d7ebff;
+  color: var(--text);
 }
 
 hr {
-  border-color: var(--color-border);
+  border-color: var(--border);
   opacity: 1;
 }
 
@@ -113,7 +166,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -121,12 +174,12 @@ textarea {
   position: absolute;
   left: 1rem;
   top: -3rem;
-  background: var(--color-ink);
+  background: var(--text);
   color: #ffffff;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   z-index: 1000;
-  transition: top 0.2s ease;
+  transition: top var(--transition);
 }
 
 .skip-link:focus {

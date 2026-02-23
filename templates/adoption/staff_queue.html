@@ -1,137 +1,162 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Adoption Queue{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/adoption-staff-queue.css' %}" />
+{% endblock %}
+
 {% block content %}
-  <div class="container">
-    <h2 class="h4 mb-3">Adoption & Reclaim Queue</h2>
-    <div class="row g-4">
-      <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Adoption Reservations</h3>
-            <ul class="list-group list-group-flush">
+  <section class="section-pad staff-admin-page adoption-queue-page">
+    <div class="container staff-admin-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="Adoption & Reclaim Queue" subtitle="Review requests, verify documents, and move cases through completion." %}
+
+      <div class="staff-admin-summary mb-3">
+        <div>
+          <h2 class="staff-admin-summary-title">Queue Workflow</h2>
+          <p class="staff-admin-summary-text">Process requests in order and record appointments before completion.</p>
+        </div>
+        <div class="staff-admin-chip-group">
+          <span class="staff-admin-chip"><i class="bi bi-heart"></i> Adoption: {{ adoptions|length }}</span>
+          <span class="staff-admin-chip"><i class="bi bi-arrow-left-right"></i> Reclaim: {{ reclaims|length }}</span>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-xl-6">
+          <article class="card-elevated staff-queue-card h-100">
+            <div class="staff-queue-head">
+              <h2 class="h6 mb-0">Adoption Reservations</h2>
+              <span class="badge-soft">{{ adoptions|length }}</span>
+            </div>
+
+            <div class="staff-queue-list">
               {% for item in adoptions %}
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between align-items-center">
+                <article class="staff-queue-item">
+                  <div class="staff-queue-item-top">
                     <div>
-                      <strong>
+                      <h3 class="staff-queue-item-title">
                         {% if item.dog.name %}
                           {{ item.dog.name }}
                         {% else %}
                           Dog #{{ item.dog_id }}
                         {% endif %}
-                      </strong>
-                      <div class="small text-muted">{{ item.requester.email }}</div>
-                      {% if item.appointment_schedule %}
-                        <div class="small text-muted">
-                          Appointment: {{ item.appointment_schedule|date:"M d, Y H:i" }}
-                        </div>
-                      {% endif %}
-                      {% if item.confirmed_at %}
-                        <div class="small text-success">User confirmed</div>
-                      {% else %}
-                        <div class="small text-muted">Awaiting user confirmation</div>
-                      {% endif %}
+                      </h3>
+                      <div class="staff-queue-item-meta">{{ item.requester.email }}</div>
+                      <div class="staff-queue-item-meta">Submitted {{ item.created_at|date:"M d, Y H:i" }}</div>
                     </div>
-                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                    {% if item.status == 'APPROVED' %}
+                      <span class="status-pill status-pill--success">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'REJECTED' or item.status == 'CANCELLED' %}
+                      <span class="status-pill status-pill--danger">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'COMPLETED' %}
+                      <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
+                    {% else %}
+                      <span class="status-pill status-pill--warning">{{ item.get_status_display }}</span>
+                    {% endif %}
                   </div>
-                  <div class="mt-2 d-flex gap-2 flex-wrap">
-                    <a class="btn btn-sm btn-outline-success" href="{% url 'adoption_update_status' item.pk 'APPROVED' %}">
-                      Approve
-                    </a>
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'adoption_update_status' item.pk 'COMPLETED' %}">
-                      Complete
-                    </a>
-                    <a class="btn btn-sm btn-outline-danger" href="{% url 'adoption_update_status' item.pk 'REJECTED' %}">
-                      Reject
-                    </a>
-                  </div>
+
+                  {% if item.appointment_schedule %}
+                    <div class="staff-queue-note">Appointment: {{ item.appointment_schedule|date:"M d, Y H:i" }}</div>
+                  {% endif %}
+
                   {% if item.confirmed_at %}
-                    <form
-                      method="post"
-                      action="{% url 'adoption_schedule' item.pk %}"
-                      class="mt-2"
-                    >
+                    <div class="staff-queue-note staff-queue-note--success">User confirmed</div>
+                  {% else %}
+                    <div class="staff-queue-note">Awaiting user confirmation</div>
+                  {% endif %}
+
+                  <div class="staff-queue-actions">
+                    <a class="btn btn-sm btn-outline-success" href="{% url 'adoption_update_status' item.pk 'APPROVED' %}">Approve</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'adoption_update_status' item.pk 'COMPLETED' %}">Complete</a>
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'adoption_update_status' item.pk 'REJECTED' %}">Reject</a>
+                  </div>
+
+                  {% if item.confirmed_at %}
+                    <form method="post" action="{% url 'adoption_schedule' item.pk %}" class="staff-queue-schedule">
                       {% csrf_token %}
                       <div class="row g-2">
                         <div class="col-6">
-                          <input class="form-control" type="date" name="appointment_date" required>
+                          <input class="form-control" type="date" name="appointment_date" required />
                         </div>
                         <div class="col-6">
-                          <input class="form-control" type="time" name="appointment_time" required>
+                          <input class="form-control" type="time" name="appointment_time" required />
                         </div>
                         <div class="col-12">
-                          <button class="btn btn-sm btn-outline-primary" type="submit">
-                            Set Appointment
-                          </button>
+                          <button class="btn btn-sm btn-primary" type="submit">Set Appointment</button>
                         </div>
                       </div>
                     </form>
                   {% endif %}
-                </li>
+                </article>
               {% empty %}
-                <li class="list-group-item text-muted">No adoption requests.</li>
+                <div class="staff-admin-empty">No adoption requests.</div>
               {% endfor %}
-            </ul>
-          </div>
+            </div>
+          </article>
         </div>
-      </div>
 
-      <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Reclaim Requests</h3>
-            <ul class="list-group list-group-flush">
+        <div class="col-xl-6">
+          <article class="card-elevated staff-queue-card h-100">
+            <div class="staff-queue-head">
+              <h2 class="h6 mb-0">Reclaim Requests</h2>
+              <span class="badge-soft">{{ reclaims|length }}</span>
+            </div>
+
+            <div class="staff-queue-list">
               {% for item in reclaims %}
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between align-items-center">
+                <article class="staff-queue-item">
+                  <div class="staff-queue-item-top">
                     <div>
-                      <strong>
+                      <h3 class="staff-queue-item-title">
                         {% if item.dog.name %}
                           {{ item.dog.name }}
                         {% else %}
                           Dog #{{ item.dog_id }}
                         {% endif %}
-                      </strong>
-                      <div class="small text-muted">{{ item.owner.email }}</div>
-                      {% if item.ownership_proof %}
-                        <div class="small">
-                          <a href="{{ item.ownership_proof.url }}" target="_blank" rel="noopener">View ownership proof</a>
-                        </div>
-                      {% else %}
-                        <div class="small text-muted">No ownership proof uploaded.</div>
-                      {% endif %}
+                      </h3>
+                      <div class="staff-queue-item-meta">{{ item.owner.email }}</div>
+                      <div class="staff-queue-item-meta">Submitted {{ item.created_at|date:"M d, Y H:i" }}</div>
                     </div>
-                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                    {% if item.status == 'APPROVED' %}
+                      <span class="status-pill status-pill--success">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'REJECTED' %}
+                      <span class="status-pill status-pill--danger">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'COMPLETED' %}
+                      <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
+                    {% else %}
+                      <span class="status-pill status-pill--warning">{{ item.get_status_display }}</span>
+                    {% endif %}
                   </div>
-                  <div class="mt-2 d-flex gap-2 flex-wrap">
-                    <a class="btn btn-sm btn-outline-success" href="{% url 'reclaim_update_status' item.pk 'APPROVED' %}">
-                      Approve
-                    </a>
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'reclaim_update_status' item.pk 'COMPLETED' %}">
-                      Complete
-                    </a>
+
+                  {% if item.ownership_proof %}
+                    <div class="staff-queue-note">
+                      <a href="{{ item.ownership_proof.url }}" target="_blank" rel="noopener">View ownership proof</a>
+                    </div>
+                  {% else %}
+                    <div class="staff-queue-note">No ownership proof uploaded.</div>
+                  {% endif %}
+
+                  <div class="staff-queue-actions">
+                    <a class="btn btn-sm btn-outline-success" href="{% url 'reclaim_update_status' item.pk 'APPROVED' %}">Approve</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'reclaim_update_status' item.pk 'COMPLETED' %}">Complete</a>
                     {% if item.penalty_case %}
-                      <a
-                        class="btn btn-sm btn-outline-primary"
-                        href="{% url 'penalties_checklist' %}?case={{ item.penalty_case.id }}"
-                      >
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'penalties_checklist' %}?case={{ item.penalty_case.id }}">
                         Penalty
                       </a>
                     {% endif %}
-                    <a class="btn btn-sm btn-outline-danger" href="{% url 'reclaim_update_status' item.pk 'REJECTED' %}">
-                      Reject
-                    </a>
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'reclaim_update_status' item.pk 'REJECTED' %}">Reject</a>
                   </div>
-                </li>
+                </article>
               {% empty %}
-                <li class="list-group-item text-muted">No reclaim requests.</li>
+                <div class="staff-admin-empty">No reclaim requests.</div>
               {% endfor %}
-            </ul>
-          </div>
+            </div>
+          </article>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

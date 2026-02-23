@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/admin-user-management.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <section class="section-pad user-management-shell">
+    <div class="container">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="User Management" subtitle="Review verification status, manage approvals, and monitor user onboarding." %}
+
+      <div class="user-management-tip card-soft">
+        <p class="mb-0">
+          Use the filters below to quickly find accounts that need verification actions.
+        </p>
+      </div>
+
+      <div class="user-summary-grid">
+        <article class="kpi-card user-kpi">
+          <div class="user-kpi-icon"><i class="bi bi-people-fill"></i></div>
+          <div>
+            <div class="kpi-label">Total Users</div>
+            <div class="kpi-value">{{ summary.total }}</div>
+          </div>
+        </article>
+        <article class="kpi-card user-kpi">
+          <div class="user-kpi-icon"><i class="bi bi-patch-check-fill"></i></div>
+          <div>
+            <div class="kpi-label">Fully Verified</div>
+            <div class="kpi-value">{{ summary.fully_verified }}</div>
+          </div>
+        </article>
+        <article class="kpi-card user-kpi">
+          <div class="user-kpi-icon"><i class="bi bi-envelope-check-fill"></i></div>
+          <div>
+            <div class="kpi-label">Email Verified</div>
+            <div class="kpi-value">{{ summary.email_verified }}</div>
+          </div>
+        </article>
+        <article class="kpi-card user-kpi">
+          <div class="user-kpi-icon"><i class="bi bi-person-exclamation"></i></div>
+          <div>
+            <div class="kpi-label">Face Pending</div>
+            <div class="kpi-value">{{ summary.face_pending }}</div>
+          </div>
+        </article>
+      </div>
+
+      <form method="get" class="card-elevated filter-panel">
+        <div class="filter-topline">
+          <h2 class="h6 mb-0">Find Accounts</h2>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge-soft">{{ users|length }} result{{ users|length|pluralize }}</span>
+            {% if query or role_filter or verification_filter %}
+              <span class="badge-soft badge-soft--success">Filters Active</span>
+            {% endif %}
+          </div>
+        </div>
+        <p class="filter-help mb-3">Filter by role or verification to find accounts that need action first.</p>
+        <div class="filter-grid">
+          <div>
+            <label class="form-label" for="userSearch"><i class="bi bi-search"></i> Search</label>
+            <input
+              class="form-control"
+              id="userSearch"
+              name="q"
+              placeholder="Search by name, email, or username"
+              value="{{ query }}"
+            />
+          </div>
+          <div>
+            <label class="form-label" for="roleFilter"><i class="bi bi-person-badge"></i> Role</label>
+            <select class="form-select" id="roleFilter" name="role">
+              <option value="">All roles</option>
+              {% for value, label in roles.choices %}
+                <option value="{{ value }}" {% if role_filter == value %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="verificationFilter"><i class="bi bi-shield-check"></i> Verification</label>
+            <select class="form-select" id="verificationFilter" name="verification">
+              <option value="">All statuses</option>
+              <option value="email_verified" {% if verification_filter == 'email_verified' %}selected{% endif %}>
+                Email Verified
+              </option>
+              <option value="email_unverified" {% if verification_filter == 'email_unverified' %}selected{% endif %}>
+                Email Unverified
+              </option>
+              <option value="face_pending" {% if verification_filter == 'face_pending' %}selected{% endif %}>
+                Face Pending
+              </option>
+              <option value="face_approved" {% if verification_filter == 'face_approved' %}selected{% endif %}>
+                Face Approved
+              </option>
+              <option value="face_rejected" {% if verification_filter == 'face_rejected' %}selected{% endif %}>
+                Face Rejected
+              </option>
+              <option value="fully_verified" {% if verification_filter == 'fully_verified' %}selected{% endif %}>
+                Fully Verified
+              </option>
+              <option value="not_verified" {% if verification_filter == 'not_verified' %}selected{% endif %}>
+                Not Verified
+              </option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn-primary" type="submit">Apply Filters</button>
+            <a class="btn btn-outline-secondary" href="{% url 'admin_user_management' %}">
+              Reset
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <div class="table-shell table-shell--sticky mt-4 user-table-shell">
+        <div class="table-responsive">
+          <table class="table align-middle user-table table-mobile-stack mb-0">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Contact</th>
+                <th>Verification Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+                <tr>
+                  <td data-label="User">
+                    <div class="user-identity">
+                      {% if user.profile.full_name and user.profile.full_name|length > 2 %}
+                        <div class="user-avatar" aria-hidden="true">{{ user.profile.full_name|slice:":1"|upper }}</div>
+                      {% else %}
+                        <div class="user-avatar" aria-hidden="true">{{ user.username|slice:":1"|upper }}</div>
+                      {% endif %}
+                      <div class="user-meta">
+                        {% if user.profile.full_name and user.profile.full_name|length > 2 %}
+                          <div class="fw-semibold">{{ user.profile.full_name }}</div>
+                          <div class="text-muted small">@{{ user.username }}</div>
+                        {% else %}
+                          <div class="fw-semibold">{{ user.username }}</div>
+                        {% endif %}
+                        <div class="text-muted small">Joined {{ user.date_joined|date:"M d, Y" }}</div>
+                        <span class="chip user-role-chip">
+                          {% if user.role == 'ADMIN' %}
+                            Admin
+                          {% elif user.role == 'STAFF' %}
+                            Staff
+                          {% else %}
+                            Owner
+                          {% endif %}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td data-label="Contact">
+                    <div class="user-contact">
+                      <i class="bi bi-envelope"></i>
+                      <span>{{ user.email }}</span>
+                    </div>
+                  </td>
+                  <td data-label="Verification Status">
+                    <div class="verification-chip-group">
+                      <div class="verification-chip">
+                        <span class="verification-label">Email</span>
+                        {% if user.email_verified %}
+                          {% include 'partials/status_pill.html' with label="Verified" tone="success" %}
+                        {% else %}
+                          {% include 'partials/status_pill.html' with label="Pending" tone="warning" %}
+                        {% endif %}
+                      </div>
+                      <div class="verification-chip">
+                        <span class="verification-label">Face</span>
+                        {% if user.face_verification %}
+                          {% if user.face_verification.status == 'APPROVED' %}
+                            {% include 'partials/status_pill.html' with label="Approved" tone="success" %}
+                          {% elif user.face_verification.status == 'REJECTED' %}
+                            {% include 'partials/status_pill.html' with label="Rejected" tone="danger" %}
+                          {% else %}
+                            {% include 'partials/status_pill.html' with label="Pending" tone="info" %}
+                          {% endif %}
+                        {% else %}
+                          {% include 'partials/status_pill.html' with label="No Submission" tone="muted" %}
+                        {% endif %}
+                      </div>
+                      <div class="verification-chip">
+                        <span class="verification-label">Account</span>
+                        {% if user.is_verified %}
+                          {% include 'partials/status_pill.html' with label="Verified" tone="success" %}
+                        {% else %}
+                          {% include 'partials/status_pill.html' with label="Not Verified" tone="warning" %}
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td data-label="Action" class="user-action-cell">
+                    <div class="action-bar user-action-bar justify-content-end">
+                      {% if user.face_verification %}
+                        <a class="btn btn-sm btn-outline-primary user-action-btn" href="{% url 'verification_detail' user.face_verification.id %}">
+                          <i class="bi bi-eye me-1"></i>
+                          Review
+                        </a>
+                      {% else %}
+                        <span class="user-action-hint">No submission</span>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4">
+                    <div class="empty-state">
+                      <div class="empty-state-icon"><i class="bi bi-people"></i></div>
+                      <p class="mb-0">No users match the selected filters.</p>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

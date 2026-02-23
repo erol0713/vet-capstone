@@ -1,0 +1,233 @@
+.penalty-checklist-wrap {
+  max-width: 1140px;
+}
+
+.penalty-checklist-page .page-header {
+  margin-bottom: var(--space-4);
+}
+
+.penalty-guide {
+  border: 1px solid var(--color-border);
+  padding: var(--space-3);
+}
+
+.penalty-guide-title {
+  font-size: 0.82rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-primary-600);
+  margin-bottom: 0.5rem;
+}
+
+.penalty-guide-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.penalty-guide-step {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  border-radius: var(--radius-pill);
+  padding: 0.28rem 0.64rem;
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: #3e554e;
+}
+
+.penalty-case-filter {
+  border: 1px solid var(--color-border);
+  padding: var(--space-3);
+}
+
+.penalty-case-filter .form-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: #314942;
+}
+
+.penalty-case-banner {
+  border: 1px solid var(--color-border);
+  padding: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.penalty-case-kicker {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.penalty-case-title {
+  font-size: 1.3rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+
+.penalty-case-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.penalty-case-state {
+  display: grid;
+  justify-items: end;
+  gap: 0.4rem;
+}
+
+.penalty-case-amount {
+  font-size: var(--text-sm);
+  color: #355a50;
+  font-weight: 600;
+}
+
+.penalty-case-empty {
+  border-radius: var(--radius-md);
+}
+
+.penalty-checklist-card {
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.penalty-checklist-head {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: #fbfcfb;
+}
+
+.penalty-checklist-head .h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+
+.penalty-accordion .accordion-button {
+  font-weight: 700;
+  color: #113a31;
+  background: #f5f8f7;
+}
+
+.penalty-accordion .accordion-button:not(.collapsed) {
+  background: #ebf3f0;
+  color: #0f5e3c;
+  box-shadow: none;
+}
+
+.penalty-accordion .accordion-body {
+  padding: 0.75rem 0.9rem;
+}
+
+.penalty-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border: 1px solid rgba(11, 43, 38, 0.08);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  padding: 0.52rem 0.62rem;
+  margin-bottom: 0.5rem;
+}
+
+.penalty-item-row:last-child {
+  margin-bottom: 0;
+}
+
+.penalty-item-row .form-check-input {
+  margin-top: 0.25rem;
+}
+
+.penalty-item-row .form-check-label {
+  font-size: 0.88rem;
+  color: #173f36;
+  cursor: pointer;
+}
+
+.penalty-amount {
+  font-weight: 700;
+  color: #0f5e3c;
+  white-space: nowrap;
+}
+
+.penalty-summary-card {
+  position: sticky;
+  top: 1.35rem;
+  border: 1px solid var(--color-border);
+  padding: var(--space-3);
+}
+
+.penalty-summary-head {
+  margin-bottom: 0.65rem;
+}
+
+.penalty-summary-rows {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.penalty-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.56rem 0.7rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.88rem;
+  background: #ffffff;
+}
+
+.penalty-summary-row:last-child {
+  border-bottom: 0;
+}
+
+.penalty-summary-row strong {
+  font-weight: 700;
+  color: #0c382f;
+}
+
+.penalty-summary-row--grand {
+  background: #f2f8f5;
+  font-weight: 700;
+}
+
+.penalty-summary-row--grand strong {
+  color: var(--color-primary-700);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 991.98px) {
+  .penalty-summary-card {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .penalty-checklist-page .page-header {
+    margin-bottom: var(--space-3);
+  }
+
+  .penalty-guide,
+  .penalty-case-filter,
+  .penalty-case-banner,
+  .penalty-summary-card {
+    padding: var(--space-2);
+  }
+
+  .penalty-case-state {
+    justify-items: start;
+  }
+
+  .penalty-item-row .form-check-label {
+    font-size: 0.83rem;
+  }
+}

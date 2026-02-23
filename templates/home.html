@@ -3,57 +3,35 @@
 {% block title %}Bayawan Dog Pound & Vet Office{% endblock %}
 
 {% block content %}
-  <section class="hero">
+  <section class="section-pad">
     <div class="container">
-      <div class="row align-items-center g-4">
-        <div class="col-lg-6">
-          <span class="chip">Bayawan City Veterinary Office</span>
-          <h1 class="display-6 fw-semibold mt-3">
-            Stray dog recovery and adoption information system with civic analytics
-          </h1>
-          <p class="lead text-muted">
-            Publicly view dog pound inventory and community reports. Verified users can adopt,
-            reclaim, and manage compliance.
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="{% url 'dogs_public_list' %}">Browse Dog Pound</a>
-            <a class="btn btn-outline-secondary" href="{% url 'reports_public' %}">Report a Stray</a>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="hero-card card-elevated">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="badge-soft badge-soft--success">Live Status</span>
-              <i class="bi bi-shield-check text-success"></i>
-            </div>
-            <h5 class="mb-2">Public Access</h5>
-            <p class="text-muted mb-0">
-              View available dogs, capture statistics, and announcements without logging in.
-              Secure verification is required for actions.
-            </p>
-          </div>
-        </div>
+      {% include 'partials/page_header.html' with eyebrow="Civic Portal" title="Bayawan Vet Office System" subtitle="Public dog pound access, reporting, and verified owner services in one portal." %}
+      <div class="action-bar mb-3">
+        <a class="btn btn-primary" href="{% url 'reports_public' %}">Report a Stray</a>
+        <a class="btn btn-outline-secondary" href="{% url 'dogs_public_list' %}">Dog Pound</a>
       </div>
-    </div>
-  </section>
 
-  <section class="section-strip">
-    <div class="container">
-      <div class="grid-cards">
-        <div class="card-soft p-4">
-          <i class="bi bi-bell text-success"></i>
-          <h6 class="mt-3">Notifications</h6>
-          <p class="text-muted mb-0">Stay updated on vaccines, strikes, and reclaim approvals.</p>
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <div class="card-soft p-3 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h2 class="h6 mb-0">Public Access</h2>
+              <span class="badge-soft badge-soft--success">Live</span>
+            </div>
+            <p class="text-muted mb-0">Browse dog inventory and community reports without logging in.</p>
+          </div>
         </div>
-        <div class="card-soft p-4">
-          <i class="bi bi-geo-alt text-success"></i>
-          <h6 class="mt-3">Barangay Analytics</h6>
-          <p class="text-muted mb-0">Track hotspots and monthly capture trends for decision support.</p>
+        <div class="col-lg-4">
+          <div class="card-soft p-3 h-100">
+            <h2 class="h6 mb-2">Verification Gating</h2>
+            <p class="text-muted mb-0">Adoption, reclaim, and protected actions require verified owner accounts.</p>
+          </div>
         </div>
-        <div class="card-soft p-4">
-          <i class="bi bi-clipboard-check text-success"></i>
-          <h6 class="mt-3">Penalty Checklist</h6>
-          <p class="text-muted mb-0">Compute ordinance-based penalties with clear, auditable fees.</p>
+        <div class="col-lg-4">
+          <div class="card-soft p-3 h-100">
+            <h2 class="h6 mb-2">Operations Visibility</h2>
+            <p class="text-muted mb-0">Track queues, penalties, and service updates from a single civic dashboard.</p>
+          </div>
         </div>
       </div>
     </div>

@@ -74,3 +74,17 @@ class StaffReportUpdateForm(forms.ModelForm):
             if widget_type == 'select' or field.widget.__class__.__name__.lower().startswith('select'):
                 css = 'form-select'
             field.widget.attrs.setdefault('class', css)
+        if 'status' in self.fields:
+            self.fields['status'].label = 'Status'
+            self.fields['status'].help_text = 'Set the current processing stage for this report.'
+        if 'notes' in self.fields:
+            self.fields['notes'].label = 'Internal Notes'
+            self.fields['notes'].required = False
+            self.fields['notes'].widget.attrs.setdefault(
+                'placeholder',
+                'Add concise staff-only notes for turnover or audit trail.',
+            )
+            self.fields['notes'].widget.attrs.setdefault('rows', 5)
+            self.fields['notes'].help_text = (
+                'These notes are visible to staff and admins only.'
+            )

@@ -1,0 +1,89 @@
+.adoption-queue-page .staff-queue-card {
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.staff-queue-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: #fbfcfb;
+}
+
+.staff-queue-list {
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.staff-queue-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  padding: 0.72rem 0.8rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.staff-queue-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.staff-queue-item-title {
+  margin: 0 0 0.2rem;
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+
+.staff-queue-item-meta {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.staff-queue-note {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.staff-queue-note--success {
+  color: var(--color-primary-600);
+  font-weight: 700;
+}
+
+.staff-queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.staff-queue-actions .btn {
+  font-weight: 700;
+}
+
+.staff-queue-schedule {
+  border-top: 1px dashed var(--color-border);
+  padding-top: 0.55rem;
+}
+
+@media (max-width: 575.98px) {
+  .staff-queue-head,
+  .staff-queue-list {
+    padding: var(--space-2);
+  }
+
+  .staff-queue-item-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .staff-queue-actions .btn {
+    flex: 1 1 auto;
+  }
+}

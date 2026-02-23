@@ -15,20 +15,19 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:wght@400;600;700&display=swap"
-    />
     <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/components.css' %}" />
     <link rel="stylesheet" href="{% static 'css/layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/utilities.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/app-pages.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/app-modules.css' %}" />
     {% block extra_css %}{% endblock %}
   </head>
   <body class="app-shell">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
       <div class="container">
-        <a class="navbar-brand fw-semibold" href="{% url 'home' %}">
+        <a class="navbar-brand fw-semibold site-navbar-title" href="{% url 'home' %}">
           Bayawan Vet Office
         </a>
         <button
@@ -43,7 +42,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav ms-auto">
+          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
             {% if request.user.is_authenticated %}
               <li class="nav-item">
                 {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' %}
@@ -62,30 +61,40 @@
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                   >
-                    Manage Dogs
+                    Dogs
                   </a>
                   <ul class="dropdown-menu" aria-labelledby="manageDogDropdown">
+                    <li><h6 class="dropdown-header">Dog Management</h6></li>
                     <li><a class="dropdown-item" href="{% url 'dogs_manage_list' %}">Intake</a></li>
                     <li>
-                      <a class="dropdown-item" href="{% url 'dogs_registered_by_owner' %}">
-                        Registered Dogs
-                      </a>
+                      <a class="dropdown-item" href="{% url 'dogs_registered_by_owner' %}">Registered Dogs</a>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="{% url 'dogs_vaccination_requests' %}">
-                        Vaccinations
-                      </a>
+                      <a class="dropdown-item" href="{% url 'dogs_vaccination_requests' %}">Vaccinations</a>
                     </li>
+                  </ul>
+                </li>
+                <li class="nav-item dropdown">
+                  <a
+                    class="nav-link dropdown-toggle"
+                    href="#"
+                    id="staffCasesDropdown"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    Cases
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="staffCasesDropdown">
+                    <li><h6 class="dropdown-header">Request Workflow</h6></li>
                     <li><a class="dropdown-item" href="{% url 'reports_staff_list' %}">Reports</a></li>
                     <li>
-                      <a class="dropdown-item" href="{% url 'adoption_staff_queue' %}">
-                        Adoption Queue
-                      </a>
+                      <a class="dropdown-item" href="{% url 'adoption_staff_queue' %}">Adoption Queue</a>
                     </li>
                   </ul>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'verification_queue' %}">Verifications</a>
+                  <a class="nav-link" href="{% url 'admin_user_management' %}">Verifications</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'penalties_checklist' %}">Penalties</a>
@@ -93,9 +102,6 @@
               {% else %}
                 <li class="nav-item">
                   <a class="nav-link" href="{% url 'adoption_my_requests' %}">My Requests</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'dogs_register' %}">Register Dog</a>
                 </li>
               {% endif %}
             {% endif %}
@@ -112,39 +118,76 @@
               </li>
             {% endif %}
             {% if request.user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'notifications_inbox' %}">
-                  <span class="notification-bell">
-                    <i class="bi bi-bell"></i>
-                    {% if unread_notifications %}
-                      <span class="notification-badge">{{ unread_notifications }}</span>
-                    {% endif %}
-                  </span>
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle notification-toggle {% if unread_notifications %}has-unread{% endif %}"
+                  href="#"
+                  id="notificationsDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  aria-label="Open notifications"
+                >
+                  <i class="bi bi-bell"></i>
+                  {% if unread_notifications %}
+                    <span class="notification-badge">{{ unread_notifications }}</span>
+                  {% endif %}
                 </a>
+                <div class="dropdown-menu dropdown-menu-end notification-menu p-0" aria-labelledby="notificationsDropdown">
+                  <div class="notification-menu-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Notifications</span>
+                    <a class="small text-decoration-none" href="{% url 'notifications_inbox' %}">View all</a>
+                  </div>
+                  <div class="notification-menu-list">
+                    {% for item in nav_notifications %}
+                      <a
+                        class="dropdown-item notification-item {% if not item.is_read %}is-unread{% endif %}"
+                        href="{% url 'notifications_read' item.pk %}"
+                      >
+                        <div class="notification-item-title">{{ item.title }}</div>
+                        <div class="notification-item-message">{{ item.message|truncatechars:85 }}</div>
+                        <div class="notification-item-time">{{ item.created_at|date:"M d, Y H:i" }}</div>
+                      </a>
+                    {% empty %}
+                      <div class="notification-empty">No notifications yet.</div>
+                    {% endfor %}
+                  </div>
+                  <div class="notification-menu-footer d-flex gap-2">
+                    <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'notifications_read_all' %}">Mark all read</a>
+                    <a class="btn btn-sm btn-primary w-100" href="{% url 'notifications_inbox' %}">Open inbox</a>
+                  </div>
+                </div>
               </li>
               <li class="nav-item dropdown">
                 <a
-                  class="nav-link dropdown-toggle d-flex align-items-center"
+                  class="nav-link dropdown-toggle navbar-profile-toggle"
                   href="#"
                   id="profileDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  <span class="avatar-circle me-2">
-                    {{ request.user.username|first|upper }}
+                  <span class="navbar-profile-avatar" aria-hidden="true">
+                    {% if request.user.profile.profile_photo %}
+                      <img
+                        src="{{ request.user.profile.profile_photo.url }}"
+                        alt=""
+                        class="navbar-profile-avatar-img"
+                      />
+                    {% else %}
+                      <span class="navbar-profile-avatar-fallback">{{ request.user.username|first|upper }}</span>
+                    {% endif %}
                   </span>
-                  <span class="d-none d-lg-inline">{{ request.user.username }}</span>
+                  <span class="navbar-profile-name">{{ request.user.username }}</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-                  <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-                  {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' %}
-                    <li><a class="dropdown-item" href="{% url 'analytics_dashboard' %}">Dashboard</a></li>
-                  {% else %}
-                    <li><a class="dropdown-item" href="{% url 'dashboard' %}">Dashboard</a></li>
-                  {% endif %}
+                <ul class="dropdown-menu dropdown-menu-end profile-menu" aria-labelledby="profileDropdown">
+                  <li class="profile-menu-header">
+                    <p class="profile-menu-kicker mb-1">Signed in as</p>
+                    <div class="profile-menu-email">{{ request.user.username }}</div>
+                  </li>
+                  <li><a class="dropdown-item profile-menu-link" href="{% url 'profile' %}">Profile</a></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                  <li><a class="dropdown-item profile-menu-link profile-menu-link--danger" href="{% url 'logout' %}">Logout</a></li>
                 </ul>
               </li>
             {% endif %}
@@ -168,6 +211,58 @@
     </main>
 
     {% include 'partials/mobile_bottom_nav.html' %}
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const normalizePath = (path) => {
+          if (!path) return '/';
+          const parsed = new URL(path, window.location.origin);
+          let normalized = parsed.pathname || '/';
+          if (normalized.length > 1 && normalized.endsWith('/')) {
+            normalized = normalized.slice(0, -1);
+          }
+          return normalized.toLowerCase();
+        };
+
+        const isPathMatch = (targetPath, currentPath) => {
+          if (targetPath === '/') return currentPath === '/';
+          // Keep "Dog Pound" limited to public listing/detail paths in navbar state.
+          if (targetPath === '/dogs') {
+            return currentPath === '/dogs' || /^\/dogs\/\d+$/.test(currentPath);
+          }
+          return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+        };
+
+        const currentPath = normalizePath(window.location.pathname);
+
+        document
+          .querySelectorAll('.navbar .navbar-nav > .nav-item > .nav-link[href]:not([href="#"])')
+          .forEach((link) => {
+            const linkPath = normalizePath(link.getAttribute('href'));
+            if (isPathMatch(linkPath, currentPath)) {
+              link.classList.add('active');
+              link.setAttribute('aria-current', 'page');
+            }
+          });
+
+        document.querySelectorAll('.navbar .nav-item.dropdown').forEach((dropdown) => {
+          const toggle = dropdown.querySelector('.nav-link.dropdown-toggle');
+          if (!toggle || toggle.id === 'profileDropdown' || toggle.id === 'notificationsDropdown') {
+            return;
+          }
+          const menuLinks = dropdown.querySelectorAll('.dropdown-menu .dropdown-item[href]');
+          const matchedMenu = Array.from(menuLinks).some((menuLink) => {
+            const menuPath = normalizePath(menuLink.getAttribute('href'));
+            return isPathMatch(menuPath, currentPath);
+          });
+
+          if (matchedMenu && toggle) {
+            toggle.classList.add('active');
+            toggle.setAttribute('aria-current', 'page');
+          }
+        });
+      });
+    </script>
 
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

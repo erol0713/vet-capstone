@@ -1,70 +1,192 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Registered Dog #{{ dog.id }}{% endblock %}
 
-{% block content %}
-  <div class="container">
-    {% with page_title="Registered Dog #"|add:dog.id page_subtitle="Owner: "|add:dog.owner.email %}
-      {% include 'partials/page_header.html' with eyebrow="Staff" title=page_title subtitle=page_subtitle %}
-    {% endwith %}
-    <div class="action-bar justify-content-end mb-3">
-      <a class="btn btn-outline-secondary" href="{% url 'dogs_registered_by_owner' %}">
-        Back to Registered Dogs
-      </a>
-    </div>
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/staff-registered-detail.css' %}" />
+{% endblock %}
 
-    <div class="card-elevated p-4">
-      <div class="row g-3">
-        <div class="col-12">
-          {% if dog.photo %}
-            <div class="dog-card mb-3">
-              <img class="dog-image dog-image--medium" src="{{ dog.photo.url }}" alt="Dog photo" loading="lazy">
-            </div>
-          {% else %}
-            <div class="card-outline p-3 text-muted text-center">No photo available.</div>
-          {% endif %}
-        </div>
-        <div class="col-md-6">
-          <div class="data-list">
-            <div class="data-list-item"><span>Name</span><span class="fw-semibold">{{ dog.name|default:"-" }}</span></div>
-            <div class="data-list-item"><span>Sex</span><span class="fw-semibold">{{ dog.sex|default:"-" }}</span></div>
-            <div class="data-list-item"><span>Age</span><span class="fw-semibold">{{ dog.age_estimate|default:"-" }}</span></div>
-            <div class="data-list-item"><span>Color</span><span class="fw-semibold">{{ dog.color|default:"-" }}</span></div>
-            <div class="data-list-item"><span>Barangay</span><span class="fw-semibold">{{ dog.barangay|default:"-" }}</span></div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="data-list">
-            <div class="data-list-item"><span>Status</span><span class="fw-semibold">{{ dog.get_status_display }}</span></div>
-            <div class="data-list-item">
-              <span>Vaccination</span>
-              <span class="fw-semibold">
-                {% if dog.vaccination_status %}
-                  {{ dog.get_vaccination_status_display }}
-                {% else %}
-                  -
-                {% endif %}
-              </span>
-            </div>
-            <div class="data-list-item"><span>Vaccination Request</span><span class="fw-semibold">{% if dog.vaccination_request %}Yes{% else %}No{% endif %}</span></div>
-            <div class="data-list-item">
-              <span>Vaccination Schedule</span>
-              <span class="fw-semibold">
-                {% if dog.vaccination_schedule %}
-                  {{ dog.vaccination_schedule|date:"M d, Y H:i" }}
-                {% else %}
-                  -
-                {% endif %}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="data-list">
-            <div class="data-list-item"><span>Notes</span><span class="fw-semibold">{{ dog.notes|default:"-" }}</span></div>
-          </div>
-        </div>
+{% block content %}
+  <section class="section-pad staff-regdog-page">
+    <div class="container staff-regdog-wrap">
+      {% with page_title="Registered Dog #"|add:dog.id page_subtitle="Owner: "|add:dog.owner.email %}
+        {% include 'partials/page_header.html' with eyebrow="Staff" title=page_title subtitle=page_subtitle %}
+      {% endwith %}
+
+      <div class="staff-regdog-toolbar mb-3">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'dogs_registered_by_owner' %}">
+          <i class="bi bi-arrow-left"></i>
+          Back to Registered Dogs
+        </a>
+        <a class="btn btn-primary btn-sm" href="{% url 'dogs_record_vaccination' dog.pk %}">
+          <i class="bi bi-shield-plus"></i>
+          Record Vaccination
+        </a>
       </div>
+
+      <article class="staff-regdog-shell card-elevated">
+        <div class="staff-regdog-hero">
+          <div class="staff-regdog-media">
+            {% if dog.photo %}
+              <img class="staff-regdog-photo" src="{{ dog.photo.url }}" alt="Dog photo" loading="lazy" />
+            {% else %}
+              <div class="staff-regdog-photo-placeholder">
+                <i class="bi bi-image"></i>
+                <span>No photo available</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="staff-regdog-overview">
+            <p class="staff-regdog-kicker">Registered Dog Profile</p>
+            <h2 class="staff-regdog-name">{{ dog.name|default:"Unnamed Dog" }}</h2>
+            <p class="staff-regdog-owner mb-0">
+              <i class="bi bi-person-circle"></i>
+              {{ dog.owner.email }}
+            </p>
+
+            <div class="staff-regdog-badges">
+              {% if dog.registration_approval_status == 'APPROVED' %}
+                <span class="status-pill status-pill--success">Registration Approved</span>
+              {% elif dog.registration_approval_status == 'REJECTED' %}
+                <span class="status-pill status-pill--danger">Registration Rejected</span>
+              {% else %}
+                <span class="status-pill status-pill--warning">Registration Pending</span>
+              {% endif %}
+
+              {% if dog.status == 'RELEASED' or dog.status == 'AVAILABLE' %}
+                <span class="status-pill status-pill--success">{{ dog.get_status_display }}</span>
+              {% elif dog.status == 'IMPOUNDED' %}
+                <span class="status-pill status-pill--info">{{ dog.get_status_display }}</span>
+              {% elif dog.status == 'ADOPTED' or dog.status == 'RECLAIMED' %}
+                <span class="status-pill status-pill--warning">{{ dog.get_status_display }}</span>
+              {% else %}
+                <span class="status-pill status-pill--muted">{{ dog.get_status_display }}</span>
+              {% endif %}
+
+              {% if dog.vaccination_status == 'VACCINATED' %}
+                <span class="badge-soft badge-soft--success">Vaccinated</span>
+              {% elif dog.vaccination_status == 'UNVACCINATED' %}
+                <span class="badge-soft">Unvaccinated</span>
+              {% else %}
+                <span class="badge-soft">Vaccination not set</span>
+              {% endif %}
+
+              {% if dog.vaccination_request %}
+                <span class="badge-soft">Vaccination Requested</span>
+              {% endif %}
+            </div>
+
+            <div class="staff-regdog-quick-facts">
+              <div class="staff-regdog-fact">
+                <span class="staff-regdog-fact-label">Sex</span>
+                <span class="staff-regdog-fact-value">{{ dog.sex|default:"-" }}</span>
+              </div>
+              <div class="staff-regdog-fact">
+                <span class="staff-regdog-fact-label">Age</span>
+                <span class="staff-regdog-fact-value">{{ dog.age_estimate|default:"-" }}</span>
+              </div>
+              <div class="staff-regdog-fact">
+                <span class="staff-regdog-fact-label">Color</span>
+                <span class="staff-regdog-fact-value">{{ dog.color|default:"-" }}</span>
+              </div>
+              <div class="staff-regdog-fact">
+                <span class="staff-regdog-fact-label">Barangay</span>
+                <span class="staff-regdog-fact-value">{{ dog.barangay|default:"-" }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="staff-regdog-panels">
+          <section class="staff-regdog-panel">
+            <h2 class="staff-regdog-panel-title">Dog Information</h2>
+            <div class="staff-regdog-row-list">
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Name</span><span class="staff-regdog-row-value">{{ dog.name|default:"-" }}</span></div>
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Sex</span><span class="staff-regdog-row-value">{{ dog.sex|default:"-" }}</span></div>
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Age</span><span class="staff-regdog-row-value">{{ dog.age_estimate|default:"-" }}</span></div>
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Color</span><span class="staff-regdog-row-value">{{ dog.color|default:"-" }}</span></div>
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Barangay</span><span class="staff-regdog-row-value">{{ dog.barangay|default:"-" }}</span></div>
+            </div>
+          </section>
+
+          <section class="staff-regdog-panel">
+            <h2 class="staff-regdog-panel-title">Vaccination and Health</h2>
+            <div class="staff-regdog-row-list">
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Status</span><span class="staff-regdog-row-value">{{ dog.get_status_display }}</span></div>
+              <div class="staff-regdog-row">
+                <span class="staff-regdog-row-label">Registration Approval</span>
+                <span class="staff-regdog-row-value">{{ dog.get_registration_approval_status_display }}</span>
+              </div>
+              <div class="staff-regdog-row">
+                <span class="staff-regdog-row-label">Vaccination</span>
+                <span class="staff-regdog-row-value">
+                  {% if dog.vaccination_status %}
+                    {{ dog.get_vaccination_status_display }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </span>
+              </div>
+              <div class="staff-regdog-row"><span class="staff-regdog-row-label">Vaccination Request</span><span class="staff-regdog-row-value">{% if dog.vaccination_request %}Yes{% else %}No{% endif %}</span></div>
+              <div class="staff-regdog-row">
+                <span class="staff-regdog-row-label">Vaccination Schedule</span>
+                <span class="staff-regdog-row-value">
+                  {% if dog.vaccination_schedule %}
+                    {{ dog.vaccination_schedule|date:"M d, Y H:i" }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </span>
+              </div>
+              <div class="staff-regdog-row">
+                <span class="staff-regdog-row-label">Vaccinated Date</span>
+                <span class="staff-regdog-row-value">
+                  {% if latest_vaccination and latest_vaccination.vaccinated_date %}
+                    {{ latest_vaccination.vaccinated_date|date:"M d, Y" }}
+                  {% elif latest_vaccination and latest_vaccination.from_owner_proof %}
+                    Owner proof confirmed
+                  {% else %}
+                    -
+                  {% endif %}
+                </span>
+              </div>
+              <div class="staff-regdog-row">
+                <span class="staff-regdog-row-label">Vaccine Expiration</span>
+                <span class="staff-regdog-row-value">
+                  {% if latest_vaccination and latest_vaccination.expiration_date %}
+                    {{ latest_vaccination.expiration_date|date:"M d, Y" }}
+                    {% if is_vaccine_expired %}
+                      <span class="status-pill status-pill--danger ms-1">Expired</span>
+                    {% endif %}
+                  {% else %}
+                    -
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <form method="post" action="{% url 'dogs_registered_detail' dog.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <button class="btn btn-sm btn-success" type="submit">Approve Registration</button>
+              </form>
+              <form method="post" action="{% url 'dogs_registered_detail' dog.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+              </form>
+            </div>
+          </section>
+
+          <section class="staff-regdog-panel staff-regdog-panel--full">
+            <h2 class="staff-regdog-panel-title">Notes</h2>
+            <p class="staff-regdog-notes mb-0">{{ dog.notes|default:"No notes provided." }}</p>
+          </section>
+        </div>
+      </article>
     </div>
-  </div>
+  </section>
 {% endblock %}

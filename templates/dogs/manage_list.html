@@ -1,59 +1,96 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dog Intake{% endblock %}
 
-{% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Staff" title="Dog Intake & Inventory" subtitle="Admin/Staff management view." %}
-    <div class="action-bar justify-content-end mb-3">
-      <a class="btn btn-primary" href="{% url 'dogs_create' %}">New Intake</a>
-    </div>
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+{% endblock %}
 
-    <div class="table-shell">
-      <div class="table-responsive">
-        <table class="table mb-0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Barangay</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for dog in dogs %}
+{% block content %}
+  <section class="section-pad staff-admin-page">
+    <div class="container staff-admin-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="Dog Intake & Inventory" subtitle="Manage dog intake records and keep inventory statuses up to date." %}
+
+      <div class="staff-admin-summary mb-3">
+        <div>
+          <h2 class="staff-admin-summary-title">Intake Records</h2>
+          <p class="staff-admin-summary-text">Review, edit, or remove dog intake entries.</p>
+        </div>
+        <div class="staff-admin-chip-group">
+          <span class="staff-admin-chip"><i class="bi bi-clipboard-data"></i> {{ dogs|length }} record{{ dogs|length|pluralize }}</span>
+        </div>
+      </div>
+
+      <div class="staff-admin-toolbar">
+        <div class="staff-admin-legend">
+          <i class="bi bi-info-circle"></i>
+          <span>Use Edit for updates and Delete for invalid records only.</span>
+        </div>
+        <a class="btn btn-primary" href="{% url 'dogs_create' %}">
+          <i class="bi bi-plus-square"></i>
+          New Intake
+        </a>
+      </div>
+
+      <div class="staff-admin-table-card table-shell">
+        <div class="table-responsive">
+          <table class="table table-mobile-stack">
+            <thead>
               <tr>
-                <td>{{ dog.id }}</td>
-                <td>{{ dog.name|default:"Unnamed" }}</td>
-                <td>{{ dog.get_status_display }}</td>
-                <td>{{ dog.barangay|default:"-" }}</td>
-                <td class="text-end">
-                  <div class="d-inline-flex gap-2">
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'dogs_edit' dog.pk %}">
-                      Edit
-                    </a>
-                    <form method="post" action="{% url 'dogs_delete_staff' dog.pk %}">
-                      {% csrf_token %}
-                      <button
-                        class="btn btn-sm btn-outline-danger"
-                        type="submit"
-                        onclick="return confirm('Delete this dog record?');"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </div>
-                </td>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Barangay</th>
+                <th class="text-end">Actions</th>
               </tr>
-            {% empty %}
-              <tr>
-                <td colspan="5" class="text-center text-muted py-3">No dogs yet.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for dog in dogs %}
+                <tr>
+                  <td data-label="ID">{{ dog.id }}</td>
+                  <td data-label="Name">{{ dog.name|default:"Unnamed" }}</td>
+                  <td data-label="Status">
+                    {% if dog.status == 'AVAILABLE' or dog.status == 'RELEASED' %}
+                      <span class="status-pill status-pill--success">{{ dog.get_status_display }}</span>
+                    {% elif dog.status == 'IMPOUNDED' %}
+                      <span class="status-pill status-pill--info">{{ dog.get_status_display }}</span>
+                    {% elif dog.status == 'ADOPTED' or dog.status == 'RECLAIMED' %}
+                      <span class="status-pill status-pill--warning">{{ dog.get_status_display }}</span>
+                    {% else %}
+                      <span class="status-pill status-pill--muted">{{ dog.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td data-label="Barangay">{{ dog.barangay|default:"-" }}</td>
+                  <td data-label="Actions" class="text-end">
+                    <div class="staff-admin-table-actions">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'dogs_edit' dog.pk %}">
+                        Edit
+                      </a>
+                      <form method="post" action="{% url 'dogs_delete_staff' dog.pk %}">
+                        {% csrf_token %}
+                        <button
+                          class="btn btn-sm btn-outline-danger"
+                          type="submit"
+                          onclick="return confirm('Delete this dog record?');"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5">
+                    <div class="staff-admin-empty">No intake records yet.</div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

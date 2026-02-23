@@ -1,0 +1,5 @@
+{% if label %}
+  <span class="status-pill {% if tone %}status-pill--{{ tone }}{% else %}status-pill--muted{% endif %}">
+    {{ label }}
+  </span>
+{% endif %}

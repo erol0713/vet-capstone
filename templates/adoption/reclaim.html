@@ -3,13 +3,13 @@
 {% block title %}Reclaim Dog{% endblock %}
 
 {% block content %}
-  <div class="container">
+  <div class="container section-pad">
+    {% include 'partials/page_header.html' with eyebrow="Owner Portal" title="Reclaim Request" subtitle="Upload proof of ownership for staff verification." %}
     <div class="row justify-content-center">
       <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h2 class="h5 mb-2">Reclaim Request</h2>
-            <p class="text-muted">Dog: {{ dog.name|default:"Unnamed Dog" }}</p>
+        <div class="card-elevated">
+          <div class="card-body">
+            <p class="text-muted mb-3">Dog: {{ dog.name|default:"Unnamed Dog" }}</p>
             <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
               {{ form.non_field_errors }}
@@ -17,7 +17,7 @@
                 <label class="form-label">Proof of ownership</label>
                 {{ form.ownership_proof }}
                 {{ form.ownership_proof.errors }}
-                <div class="form-text">Upload a photo, registration, or vet record. Admin will review this.</div>
+                <div class="form-text">Upload a photo, registration, or vet record.</div>
               </div>
               <button class="btn btn-primary w-100" type="submit">Submit Request</button>
             </form>

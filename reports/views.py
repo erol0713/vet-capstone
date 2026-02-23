@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Case, IntegerField, Value, When
+from django.db.models import Case, IntegerField, Q, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
@@ -84,7 +84,8 @@ def update_status(request, pk: int):
             form.save()
         else:
             messages.error(request, 'Please correct the form errors.')
-            return redirect('reports_staff_detail', pk=report.id)
+            context = {'report': report, 'form': form}
+            return render(request, 'reports/staff_detail.html', context)
 
         if report.reported_by and previous_status != report.status:
             Notification.objects.create(
@@ -98,8 +99,58 @@ def update_status(request, pk: int):
 
 
 def public_list(request):
-    reports = Report.objects.order_by('-created_at')
-    return render(request, 'reports/public_list.html', {'reports': reports})
+    reports_qs = Report.objects.all()
+    total_reports = reports_qs.count()
+
+    query = (request.GET.get('q') or '').strip()
+    status = (request.GET.get('status') or '').strip().upper()
+    report_type = (request.GET.get('report_type') or '').strip().upper()
+    mine_only = request.GET.get('mine') == '1'
+
+    if query:
+        filters = Q(location__icontains=query) | Q(description__icontains=query)
+        try:
+            query_id = int(query)
+        except ValueError:
+            query_id = None
+        if query_id is not None:
+            filters |= Q(id=query_id)
+        reports_qs = reports_qs.filter(filters)
+
+    valid_statuses = {choice[0] for choice in Report.Status.choices}
+    if status in valid_statuses:
+        reports_qs = reports_qs.filter(status=status)
+    else:
+        status = ''
+
+    valid_types = {choice[0] for choice in Report.ReportType.choices}
+    if report_type in valid_types:
+        reports_qs = reports_qs.filter(report_type=report_type)
+    else:
+        report_type = ''
+
+    if mine_only and request.user.is_authenticated:
+        reports_qs = reports_qs.filter(reported_by=request.user)
+    elif mine_only and not request.user.is_authenticated:
+        mine_only = False
+
+    reports = reports_qs.order_by('-created_at')
+    filtered_count = reports.count()
+
+    context = {
+        'reports': reports,
+        'total_reports': total_reports,
+        'filtered_count': filtered_count,
+        'status_choices': Report.Status.choices,
+        'report_type_choices': Report.ReportType.choices,
+        'filters': {
+            'q': query,
+            'status': status,
+            'report_type': report_type,
+            'mine': mine_only,
+        },
+    }
+    return render(request, 'reports/public_list.html', context)
 
 
 @require_POST
@@ -159,15 +210,25 @@ def api_reports(request):
     report_type_raw = (payload.get('report_type') or '').strip().upper()
     report_type_map = {
         'STRAY': Report.ReportType.STRAY,
+        'INJURED': Report.ReportType.INJURED,
         'SURRENDER': Report.ReportType.SURRENDER,
         'DANGEROUS': Report.ReportType.DANGEROUS,
+        'BITE_INCIDENT': Report.ReportType.BITE_INCIDENT,
+        'BITE INCIDENT': Report.ReportType.BITE_INCIDENT,
+        'BITE': Report.ReportType.BITE_INCIDENT,
+        'ABANDONED': Report.ReportType.ABANDONED,
+        'WELFARE': Report.ReportType.WELFARE,
+        'NEGLECT': Report.ReportType.WELFARE,
         'OTHER': Report.ReportType.OTHER,
         'INCIDENT': Report.ReportType.DANGEROUS,
     }
     if not report_type_raw:
         errors['report_type'] = 'Report type is required.'
     elif report_type_raw not in report_type_map:
-        errors['report_type'] = 'Report type must be surrender, dangerous, stray, or other.'
+        errors['report_type'] = (
+            'Report type must be stray, injured, surrender, dangerous, bite incident, '
+            'abandoned, welfare, or other.'
+        )
 
     description = (payload.get('description') or '').strip()
     if not description:

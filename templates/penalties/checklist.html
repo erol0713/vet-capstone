@@ -4,28 +4,39 @@
 {% block title %}Penalty Checklist{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/penalties.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/penalties-checklist.css' %}" />
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Staff" title="Penalty Checklist" subtitle="Ordinance-based fees with real-time totals." %}
+  <section class="section-pad penalty-checklist-page">
+    <div class="container penalty-checklist-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="Penalty Checklist" subtitle="Compute ordinance-based penalties and lock finalized cases." %}
 
-    <div class="card-soft mb-3">
-      <div class="card-body">
-        <form method="get" class="row g-2 align-items-end">
-          <div class="col-md-6">
-            <label class="form-label">Search cases</label>
+      <div class="card-soft penalty-guide mb-3">
+        <div class="penalty-guide-title">How to use this page</div>
+        <div class="penalty-guide-steps">
+          <span class="penalty-guide-step">1. Search and load a penalty case</span>
+          <span class="penalty-guide-step">2. Select applicable ordinance items</span>
+          <span class="penalty-guide-step">3. Save, then finalize to lock</span>
+        </div>
+      </div>
+
+      <form method="get" class="card-soft penalty-case-filter mb-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-lg-5">
+            <label class="form-label" for="penaltyCaseSearch">Search cases</label>
             <input
               class="form-control"
+              id="penaltyCaseSearch"
               type="text"
               name="q"
               value="{{ query }}"
               placeholder="Search by owner email, dog name, or case ID"
-            >
+            />
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Select case</label>
+          <div class="col-lg-5">
+            <label class="form-label" for="caseSelect">Select case</label>
             <select class="form-select" name="case" id="caseSelect">
               <option value="">Choose a case</option>
               {% for item in cases %}
@@ -36,162 +47,193 @@
               {% endfor %}
             </select>
           </div>
-          <div class="col-md-2 d-flex gap-2">
+          <div class="col-lg-2 d-grid d-sm-flex gap-2">
             <button class="btn btn-primary w-100" type="submit">Load</button>
-            <a class="btn btn-outline-secondary w-100" href="{% url 'penalties_checklist' %}">
-              Reset
-            </a>
+            <a class="btn btn-outline-secondary w-100" href="{% url 'penalties_checklist' %}">Reset</a>
           </div>
-        </form>
-      </div>
-    </div>
-
-    {% if case %}
-      <div class="alert alert-light border d-flex flex-wrap justify-content-between align-items-center">
-        <div>
-          <strong>Case #{{ case.id }}</strong>
-          <span class="text-muted">Owner: {{ case.owner.email }}</span>
         </div>
-        <div>
-          <span class="badge {% if case.is_finalized %}bg-danger{% else %}bg-success{% endif %}">
-            {% if case.is_finalized %}Locked{% else %}Open{% endif %}
-          </span>
-          <span class="text-muted ms-2">Total: &#8369;{{ case.total_amount }}</span>
-        </div>
-      </div>
-    {% endif %}
+      </form>
 
-    <div class="row g-3">
-      <div class="col-lg-8">
-        {% if not case %}
-          <div class="alert alert-info">
-            Select a penalty case from the admin or provide a case ID in the URL
-            (example: <code>?case=1</code>) to save checklist items.
+      {% if case %}
+        <div class="card-soft penalty-case-banner mb-3">
+          <div class="penalty-case-meta">
+            <p class="penalty-case-kicker mb-1">Selected case</p>
+            <h2 class="penalty-case-title mb-1">Case #{{ case.id }}</h2>
+            <p class="penalty-case-subtitle mb-0">
+              Owner: {{ case.owner.email }} | Dog: {{ case.dog.name|default:"Dog" }}
+            </p>
           </div>
-        {% endif %}
-        <form method="post" id="penaltyForm">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="save">
-          {% if case %}
-            <input type="hidden" name="case_id" value="{{ case.id }}">
-          {% endif %}
-          <fieldset {% if case and case.is_finalized %}disabled{% endif %}>
-          <div class="accordion" id="penaltyAccordion">
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="headingA">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseA">
-                  Section 28: Service & Maintenance Fees
-                </button>
-              </h2>
-              <div id="collapseA" class="accordion-collapse collapse show" data-bs-parent="#penaltyAccordion">
-                <div class="accordion-body">
-                  {% for item in items %}
-                    {% if item.section == 'SECTION_28' %}
-                      {% if item.code == lodging_code %}
-                        <div class="form-check mb-2">
-                          <input
-                            class="form-check-input penalty-item"
-                            type="checkbox"
-                            name="items"
-                            value="{{ item.code }}"
-                            data-amount="{{ item.default_amount }}"
-                            data-skip-total="true"
-                            data-role="lodging"
-                            id="lodgingToggle"
-                            {% if item.code in selected_codes %}checked{% endif %}
-                          >
-                          <label class="form-check-label" for="lodgingToggle">
-                            {{ item.description }} (&#8369;{{ item.default_amount }})
-                          </label>
-                        </div>
-                        <input
-                          type="hidden"
-                          id="lodgingDays"
-                          name="lodging_days"
-                          value="{{ lodging_days|default:1 }}"
-                        >
-                        <input type="hidden" name="lodging_rate" id="lodgingRateInput" value="{{ lodging_rate }}">
-                      {% else %}
-                        <div class="form-check mb-2">
-                          <input
-                            class="form-check-input penalty-item"
-                            type="checkbox"
-                            name="items"
-                            value="{{ item.code }}"
-                            data-amount="{{ item.default_amount }}"
-                            id="item-{{ item.code }}"
-                            {% if item.code in selected_codes %}checked{% endif %}
-                          >
-                          <label class="form-check-label" for="item-{{ item.code }}">
-                            {{ item.description }} (&#8369;{{ item.default_amount }})
-                          </label>
-                        </div>
-                      {% endif %}
-                    {% endif %}
-                  {% empty %}
-                    <p class="text-muted mb-0">No checklist items configured.</p>
-                  {% endfor %}
+          <div class="penalty-case-state">
+            {% if case.is_finalized %}
+              <span class="status-pill status-pill--danger">Locked</span>
+            {% else %}
+              <span class="status-pill status-pill--success">Open</span>
+            {% endif %}
+            <div class="penalty-case-amount">Current total: &#8369;{{ case.total_amount|floatformat:2 }}</div>
+          </div>
+        </div>
+      {% else %}
+        <div class="alert alert-info penalty-case-empty mb-3">
+          Load a penalty case first. You can search above or open directly with
+          <code>?case=ID</code>.
+        </div>
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-lg-8">
+          <form method="post" id="penaltyForm" class="card-elevated penalty-checklist-card">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save" />
+            {% if case %}
+              <input type="hidden" name="case_id" value="{{ case.id }}" />
+            {% endif %}
+
+            <div class="penalty-checklist-head">
+              <h2 class="h6 mb-1">Checklist Items</h2>
+              <p class="mb-0 text-muted small">Check all items that apply to the selected case.</p>
+            </div>
+
+            <fieldset {% if case and case.is_finalized %}disabled{% endif %}>
+              <div class="accordion penalty-accordion" id="penaltyAccordion">
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingA">
+                    <button
+                      class="accordion-button"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseA"
+                    >
+                      Section 28: Service & Maintenance Fees
+                    </button>
+                  </h2>
+                  <div id="collapseA" class="accordion-collapse collapse show" data-bs-parent="#penaltyAccordion">
+                    <div class="accordion-body">
+                      {% for item in items %}
+                        {% if item.section == 'SECTION_28' %}
+                          {% if item.code == lodging_code %}
+                            <div class="form-check penalty-item-row">
+                              <input
+                                class="form-check-input penalty-item"
+                                type="checkbox"
+                                name="items"
+                                value="{{ item.code }}"
+                                data-amount="{{ item.default_amount }}"
+                                data-skip-total="true"
+                                data-role="lodging"
+                                id="lodgingToggle"
+                                {% if item.code in selected_codes %}checked{% endif %}
+                              />
+                              <label class="form-check-label d-flex justify-content-between gap-2 w-100" for="lodgingToggle">
+                                <span>{{ item.description }}</span>
+                                <span class="penalty-amount">&#8369;{{ item.default_amount|floatformat:2 }}</span>
+                              </label>
+                            </div>
+                            <input
+                              type="hidden"
+                              id="lodgingDays"
+                              name="lodging_days"
+                              value="{{ lodging_days|default:1 }}"
+                            />
+                            <input type="hidden" name="lodging_rate" id="lodgingRateInput" value="{{ lodging_rate }}" />
+                          {% else %}
+                            <div class="form-check penalty-item-row">
+                              <input
+                                class="form-check-input penalty-item"
+                                type="checkbox"
+                                name="items"
+                                value="{{ item.code }}"
+                                data-amount="{{ item.default_amount }}"
+                                id="item-{{ item.code }}"
+                                {% if item.code in selected_codes %}checked{% endif %}
+                              />
+                              <label class="form-check-label d-flex justify-content-between gap-2 w-100" for="item-{{ item.code }}">
+                                <span>{{ item.description }}</span>
+                                <span class="penalty-amount">&#8369;{{ item.default_amount|floatformat:2 }}</span>
+                              </label>
+                            </div>
+                          {% endif %}
+                        {% endif %}
+                      {% empty %}
+                        <p class="text-muted mb-0">No checklist items configured.</p>
+                      {% endfor %}
+                    </div>
+                  </div>
                 </div>
+
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="headingB">
+                    <button
+                      class="accordion-button collapsed"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseB"
+                    >
+                      Section 29: Violations & Fines
+                    </button>
+                  </h2>
+                  <div id="collapseB" class="accordion-collapse collapse" data-bs-parent="#penaltyAccordion">
+                    <div class="accordion-body">
+                      {% for item in items %}
+                        {% if item.section == 'SECTION_29' %}
+                          <div class="form-check penalty-item-row">
+                            <input
+                              class="form-check-input penalty-item"
+                              type="checkbox"
+                              name="items"
+                              value="{{ item.code }}"
+                              data-amount="{{ item.default_amount }}"
+                              id="item-{{ item.code }}"
+                              {% if item.code in selected_codes %}checked{% endif %}
+                            />
+                            <label class="form-check-label d-flex justify-content-between gap-2 w-100" for="item-{{ item.code }}">
+                              <span>{{ item.description }}</span>
+                              <span class="penalty-amount">&#8369;{{ item.default_amount|floatformat:2 }}</span>
+                            </label>
+                          </div>
+                        {% endif %}
+                      {% empty %}
+                        <p class="text-muted mb-0">No checklist items configured.</p>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+
+        <div class="col-lg-4">
+          <aside class="card-elevated penalty-summary-card">
+            <div class="penalty-summary-head">
+              <h3 class="h6 mb-1">Summary</h3>
+              <p class="small text-muted mb-0">Review totals before saving.</p>
+            </div>
+
+            <div class="penalty-summary-rows">
+              <div class="penalty-summary-row">
+                <span>Selected Items</span>
+                <strong id="selectedCount">0</strong>
+              </div>
+              <div class="penalty-summary-row">
+                <span>Checklist Total</span>
+                <strong>&#8369;<span id="checklistTotal">{{ checklist_total|floatformat:2 }}</span></strong>
+              </div>
+              <div class="penalty-summary-row">
+                <span>Lodging Days</span>
+                <strong><span id="lodgingDaysDisplay">{{ lodging_days|default:0 }}</span></strong>
+              </div>
+              <div class="penalty-summary-row">
+                <span>Lodging Total</span>
+                <strong>&#8369;<span id="lodgingTotal">{{ lodging_total|floatformat:2 }}</span></strong>
+              </div>
+              <div class="penalty-summary-row penalty-summary-row--grand">
+                <span>Total Payable</span>
+                <strong>&#8369;<span id="grandTotal">{{ grand_total|floatformat:2 }}</span></strong>
               </div>
             </div>
 
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="headingB">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseB">
-                  Section 29: Violations & Fines
-                </button>
-              </h2>
-              <div id="collapseB" class="accordion-collapse collapse" data-bs-parent="#penaltyAccordion">
-                <div class="accordion-body">
-                  {% for item in items %}
-                    {% if item.section == 'SECTION_29' %}
-                      <div class="form-check mb-2">
-                        <input
-                          class="form-check-input penalty-item"
-                          type="checkbox"
-                          name="items"
-                          value="{{ item.code }}"
-                          data-amount="{{ item.default_amount }}"
-                          id="item-{{ item.code }}"
-                          {% if item.code in selected_codes %}checked{% endif %}
-                        >
-                        <label class="form-check-label" for="item-{{ item.code }}">
-                          {{ item.description }} (&#8369;{{ item.default_amount }})
-                        </label>
-                      </div>
-                    {% endif %}
-                  {% empty %}
-                    <p class="text-muted mb-0">No checklist items configured.</p>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-
-          </div>
-          </fieldset>
-        </form>
-      </div>
-
-      <div class="col-lg-4">
-        <div class="card shadow-sm border-0 position-sticky penalty-summary">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Summary</h3>
-            <div class="d-flex justify-content-between">
-              <span>Checklist Total</span>
-              <strong>&#8369;<span id="checklistTotal">{{ checklist_total|floatformat:2 }}</span></strong>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-between">
-              <span>Total Payable</span>
-              <strong class="text-success">&#8369;<span id="grandTotal">{{ grand_total|floatformat:2 }}</span></strong>
-            </div>
             <div class="d-grid gap-2 mt-3">
-              <button
-                class="btn btn-primary"
-                type="submit"
-                form="penaltyForm"
-                {% if not case or case.is_finalized %}disabled{% endif %}
-              >
+              <button class="btn btn-primary" type="submit" form="penaltyForm" {% if not case or case.is_finalized %}disabled{% endif %}>
                 Save Checklist
               </button>
               {% if case %}
@@ -208,11 +250,11 @@
                 </a>
               {% endif %}
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   {% if case %}
     <div class="modal fade" id="finalizeModal" tabindex="-1" aria-hidden="true">
@@ -220,15 +262,13 @@
         <div class="modal-content">
           <form method="post">
             {% csrf_token %}
-            <input type="hidden" name="action" value="finalize">
+            <input type="hidden" name="action" value="finalize" />
             <div class="modal-header">
               <h5 class="modal-title">Finalize Penalty Case</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <p class="mb-0">
-                Finalizing locks the case and prevents edits. Proceed?
-              </p>
+              <p class="mb-0">Finalizing locks the case and prevents edits. Proceed?</p>
             </div>
             <div class="modal-footer">
               <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
@@ -242,16 +282,5 @@
     </div>
   {% endif %}
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const select = document.getElementById('caseSelect');
-      if (select) {
-        select.addEventListener('change', () => {
-          select.form.submit();
-        });
-      }
-    });
-  </script>
   <script src="{% static 'js/penalty.js' %}"></script>
 {% endblock %}
-

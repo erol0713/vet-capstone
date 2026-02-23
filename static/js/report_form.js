@@ -30,10 +30,24 @@
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   const stepHint = document.getElementById('stepHint');
+  const stepLabel = document.getElementById('stepLabel');
+  const progressContainer = document.querySelector('.report-progress');
+  const progressBar = document.querySelector('.report-progress .progress-bar');
   const stepElements = Array.from(document.querySelectorAll('[data-report-step]'));
   const stepIndicators = Array.from(document.querySelectorAll('[data-step-indicator]'));
   const totalSteps = stepElements.length || 1;
   let currentStep = 1;
+
+  const previewType = document.getElementById('previewType');
+  const previewContact = document.getElementById('previewContact');
+  const previewPhone = document.getElementById('previewPhone');
+  const previewEmail = document.getElementById('previewEmail');
+  const previewAddress = document.getElementById('previewAddress');
+  const previewAddressNotes = document.getElementById('previewAddressNotes');
+  const previewDescription = document.getElementById('previewDescription');
+  const previewMapWrap = document.getElementById('previewMapWrap');
+  const previewMap = document.getElementById('previewMap');
+  const previewMedia = document.getElementById('previewMedia');
 
   const summaryCard = document.getElementById('reportSummary');
   const summaryId = document.getElementById('summaryId');
@@ -54,6 +68,7 @@
   let mapGeocoder = null;
   let hasUserSelected = false;
   let mapAvailable = false;
+  let mediaPreviewUrl = null;
 
   const showAlert = (type, messages) => {
     if (!alertBox) return;
@@ -70,6 +85,54 @@
     if (!alertBox) return;
     alertBox.classList.add('d-none');
     alertBox.textContent = '';
+  };
+
+  const getSelectedReportTypeLabel = () => {
+    if (!reportType || !reportType.options.length) return '';
+    const selectedOption = reportType.options[reportType.selectedIndex];
+    return selectedOption ? selectedOption.textContent.trim() : '';
+  };
+
+  const getAddressSummaryText = () => {
+    return [street.value.trim(), barangay.value.trim(), city.value.trim()]
+      .filter((part) => part)
+      .join(', ');
+  };
+
+  const clearMediaPreview = (container) => {
+    if (!container) return;
+    container.innerHTML = '';
+    if (mediaPreviewUrl) {
+      URL.revokeObjectURL(mediaPreviewUrl);
+      mediaPreviewUrl = null;
+    }
+  };
+
+  const renderMediaPreview = (container) => {
+    if (!container) return;
+    clearMediaPreview(container);
+
+    if (!(dogMedia && dogMedia.files && dogMedia.files[0])) {
+      return;
+    }
+
+    const file = dogMedia.files[0];
+    mediaPreviewUrl = URL.createObjectURL(file);
+
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      video.src = mediaPreviewUrl;
+      video.controls = true;
+      container.appendChild(video);
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = mediaPreviewUrl;
+      img.alt = 'Reported dog media';
+      container.appendChild(img);
+    }
   };
 
   const parseLatLngFromUrl = (value) => {
@@ -145,6 +208,7 @@
         }
       });
     }
+    updateDraftPreview();
   };
 
   const initMap = () => {
@@ -213,6 +277,36 @@
     }
   };
 
+  const updateDraftPreview = () => {
+    const typeLabel = getSelectedReportTypeLabel() || '-';
+    const contactName = fullName.value.trim() || '-';
+    const phoneText = phone.value.trim();
+    const emailText = email.value.trim();
+    const addressText = getAddressSummaryText();
+    const addressNotesText = addressNotes.value.trim();
+    const descriptionText = description.value.trim() || '-';
+
+    if (previewType) previewType.textContent = typeLabel;
+    if (previewContact) previewContact.textContent = contactName;
+    if (previewPhone) previewPhone.textContent = phoneText;
+    if (previewEmail) previewEmail.textContent = emailText;
+    if (previewAddress) previewAddress.textContent = addressText || '-';
+    if (previewAddressNotes) previewAddressNotes.textContent = addressNotesText;
+    if (previewDescription) previewDescription.textContent = descriptionText;
+
+    const latValue = parseFloat(latInput.value);
+    const lngValue = parseFloat(lngInput.value);
+    if (previewMap && previewMapWrap && !Number.isNaN(latValue) && !Number.isNaN(lngValue)) {
+      previewMap.src = `https://maps.google.com/maps?q=${latValue},${lngValue}&output=embed`;
+      previewMapWrap.classList.remove('d-none');
+    } else if (previewMap && previewMapWrap) {
+      previewMap.removeAttribute('src');
+      previewMapWrap.classList.add('d-none');
+    }
+
+    renderMediaPreview(previewMedia);
+  };
+
   const getStepLabel = (step) => {
     const stepEl = stepElements.find((item) => Number(item.dataset.reportStep) === step);
     return stepEl ? stepEl.dataset.stepLabel || '' : '';
@@ -241,8 +335,21 @@
     if (stepHint) {
       stepHint.textContent = `Step ${currentStep} of ${totalSteps}.`;
     }
+    if (stepLabel) {
+      stepLabel.textContent = getStepLabel(currentStep);
+    }
+    if (progressBar) {
+      const progress = Math.round((currentStep / totalSteps) * 100);
+      progressBar.style.width = `${progress}%`;
+      if (progressContainer) {
+        progressContainer.setAttribute('aria-valuenow', `${progress}`);
+      }
+    }
     if (currentStep === 2) {
       refreshMap();
+    }
+    if (currentStep === 3) {
+      updateDraftPreview();
     }
     if (form.scrollIntoView) {
       form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -325,6 +432,26 @@
     });
   }
 
+  [
+    fullName,
+    phone,
+    email,
+    street,
+    barangay,
+    city,
+    addressNotes,
+    reportType,
+    description,
+  ].forEach((field) => {
+    if (!field) return;
+    field.addEventListener('input', updateDraftPreview);
+    field.addEventListener('change', updateDraftPreview);
+  });
+
+  if (dogMedia) {
+    dogMedia.addEventListener('change', updateDraftPreview);
+  }
+
   if (geoBtn) {
     if (!navigator.geolocation) {
       geoBtn.disabled = true;
@@ -374,6 +501,7 @@
 
   mapAvailable = initMap();
   setStep(currentStep);
+  updateDraftPreview();
 
   const updateSummary = (payload, reportId) => {
     if (!summaryCard) return;
@@ -395,9 +523,9 @@
       summaryAddressNotes.textContent = payload.location.address?.notes || '';
     }
     if (summaryDescription) summaryDescription.textContent = payload.description || '-';
-    if (summaryMap && payload.location.lat && payload.location.lng) {
-      const lat = payload.location.lat;
-      const lng = payload.location.lng;
+    const lat = Number(payload.location.lat);
+    const lng = Number(payload.location.lng);
+    if (summaryMap && !Number.isNaN(lat) && !Number.isNaN(lng)) {
       summaryMap.src = `https://maps.google.com/maps?q=${lat},${lng}&output=embed`;
     }
     if (summaryMedia) {
@@ -488,10 +616,12 @@
       form.reset();
       setMapAddress('');
       hasUserSelected = false;
+      clearMediaPreview(previewMedia);
       if (mapInstance && mapMarker) {
         updateMapFromLatLng(defaultCenter.lat, defaultCenter.lng, '', false);
       }
       setStep(1);
+      updateDraftPreview();
     } catch (error) {
       showAlert('danger', 'Something went wrong. Please try again later.');
     } finally {

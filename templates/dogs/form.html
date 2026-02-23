@@ -11,7 +11,16 @@
             <h2 class="h5 mb-3">{{ title }}</h2>
             <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
-              {{ form.non_field_errors }}
+              {% if form.errors %}
+                <div class="alert alert-danger py-2" role="alert">
+                  Please review the highlighted fields and try again.
+                </div>
+              {% endif %}
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2" role="alert">
+                  {{ form.non_field_errors|striptags }}
+                </div>
+              {% endif %}
               {% if next_url %}
                 <input type="hidden" name="next" value="{{ next_url }}">
               {% endif %}
@@ -19,51 +28,87 @@
                 <div class="col-md-6">
                   <label class="form-label">Name</label>
                   {{ form.name }}
+                  {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">{{ form.name.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Status</label>
                   {{ form.status }}
+                  {% if form.status.errors %}
+                    <div class="invalid-feedback d-block">{{ form.status.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Owner</label>
                   {{ form.owner }}
+                  {% if form.owner.errors %}
+                    <div class="invalid-feedback d-block">{{ form.owner.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Barangay</label>
                   {{ form.barangay }}
+                  {% if form.barangay.errors %}
+                    <div class="invalid-feedback d-block">{{ form.barangay.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Capture Datetime</label>
                   {{ form.capture_datetime }}
+                  {% if form.capture_datetime.errors %}
+                    <div class="invalid-feedback d-block">{{ form.capture_datetime.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Surrender Datetime</label>
                   {{ form.surrender_datetime }}
+                  {% if form.surrender_datetime.errors %}
+                    <div class="invalid-feedback d-block">{{ form.surrender_datetime.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Sex</label>
                   {{ form.sex }}
+                  {% if form.sex.errors %}
+                    <div class="invalid-feedback d-block">{{ form.sex.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Age Estimate</label>
                   {{ form.age_estimate }}
+                  {% if form.age_estimate.errors %}
+                    <div class="invalid-feedback d-block">{{ form.age_estimate.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Color</label>
                   {{ form.color }}
+                  {% if form.color.errors %}
+                    <div class="invalid-feedback d-block">{{ form.color.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Photo</label>
                   {{ form.photo }}
+                  {% if form.photo.errors %}
+                    <div class="invalid-feedback d-block">{{ form.photo.errors|striptags }}</div>
+                  {% endif %}
                 </div>
                 {% if show_vaccination_fields %}
                   <div class="col-md-6">
                     <label class="form-label">Vaccination Status</label>
                     {{ form.vaccination_status }}
+                    {% if form.vaccination_status.errors %}
+                      <div class="invalid-feedback d-block">{{ form.vaccination_status.errors|striptags }}</div>
+                    {% endif %}
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">Vaccination Proof</label>
                     {{ form.vaccination_proof }}
+                    {% if form.vaccination_proof.errors %}
+                      <div class="invalid-feedback d-block">{{ form.vaccination_proof.errors|striptags }}</div>
+                    {% endif %}
                   </div>
                   <div class="col-md-6">
                     <label class="form-label d-block">Vaccination Request</label>
@@ -71,11 +116,17 @@
                       {{ form.vaccination_request }}
                       <label class="form-check-label">Appointment requested</label>
                     </div>
+                    {% if form.vaccination_request.errors %}
+                      <div class="invalid-feedback d-block">{{ form.vaccination_request.errors|striptags }}</div>
+                    {% endif %}
                   </div>
                 {% endif %}
                 <div class="col-12">
                   <label class="form-label">Notes</label>
                   {{ form.notes }}
+                  {% if form.notes.errors %}
+                    <div class="invalid-feedback d-block">{{ form.notes.errors|striptags }}</div>
+                  {% endif %}
                 </div>
               </div>
               <div class="mt-4 d-flex gap-2 flex-wrap">

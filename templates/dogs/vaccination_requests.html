@@ -1,55 +1,87 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Vaccination Requests{% endblock %}
 
-{% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Staff" title="Vaccination Requests" subtitle="Schedule appointments for unvaccinated registered dogs." %}
-    <div class="action-bar justify-content-end mb-3">
-      <a class="btn btn-outline-secondary" href="{% url 'dogs_registered_by_owner' %}">Back to Registered</a>
-    </div>
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+{% endblock %}
 
-    <div class="table-shell">
-      <div class="table-responsive">
-        <table class="table mb-0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Dog</th>
-              <th>Owner</th>
-              <th>Barangay</th>
-              <th>Request</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for dog in dogs %}
+{% block content %}
+  <section class="section-pad staff-admin-page">
+    <div class="container staff-admin-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="Vaccination Requests" subtitle="Schedule appointments for unvaccinated registered dogs." %}
+
+      <div class="staff-admin-summary mb-3">
+        <div>
+          <h2 class="staff-admin-summary-title">Pending Vaccination Queue</h2>
+          <p class="staff-admin-summary-text">Assign appointment schedules for owner-requested vaccinations.</p>
+        </div>
+        <div class="staff-admin-chip-group">
+          <span class="staff-admin-chip"><i class="bi bi-calendar2-check"></i> {{ dogs|length }} request{{ dogs|length|pluralize }}</span>
+        </div>
+      </div>
+
+      <div class="staff-admin-toolbar">
+        <div class="staff-admin-legend">
+          <i class="bi bi-info-circle"></i>
+          <span>Schedule requests from oldest to newest to reduce wait time.</span>
+        </div>
+      </div>
+
+      <div class="staff-admin-table-card table-shell">
+        <div class="table-responsive">
+          <table class="table table-mobile-stack">
+            <thead>
               <tr>
-                <td>{{ dog.id }}</td>
-                <td>{{ dog.name|default:"Unnamed" }}</td>
-                <td>{{ dog.owner.username }}<div class="small text-muted">{{ dog.owner.email }}</div></td>
-                <td>{{ dog.barangay|default:"-" }}</td>
-                <td>
-                  {% if dog.vaccination_schedule %}
-                    Scheduled: {{ dog.vaccination_schedule|date:"M d, Y H:i" }}
-                  {% else %}
-                    Pending
-                  {% endif %}
-                </td>
-                <td class="text-end">
-                  <a class="btn btn-sm btn-outline-primary" href="{% url 'dogs_schedule_vaccination' dog.pk %}">
-                    Schedule
-                  </a>
-                </td>
+                <th>ID</th>
+                <th>Dog</th>
+                <th>Owner</th>
+                <th>Barangay</th>
+                <th>Request Status</th>
+                <th class="text-end">Actions</th>
               </tr>
-            {% empty %}
-              <tr>
-                <td colspan="6" class="text-center text-muted py-3">No vaccination requests.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for dog in dogs %}
+                <tr>
+                  <td data-label="ID">{{ dog.id }}</td>
+                  <td data-label="Dog">{{ dog.name|default:"Unnamed" }}</td>
+                  <td data-label="Owner">
+                    {{ dog.owner.username }}
+                    <div class="small text-muted">{{ dog.owner.email }}</div>
+                  </td>
+                  <td data-label="Barangay">{{ dog.barangay|default:"-" }}</td>
+                  <td data-label="Request Status">
+                    {% if dog.vaccination_schedule %}
+                      <span class="status-pill status-pill--success">Scheduled</span>
+                      <div class="small text-muted mt-1">{{ dog.vaccination_schedule|date:"M d, Y H:i" }}</div>
+                    {% else %}
+                      <span class="status-pill status-pill--warning">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td data-label="Actions" class="text-end">
+                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'dogs_schedule_vaccination' dog.pk %}">
+                        {% if dog.vaccination_schedule %}Reschedule{% else %}Schedule{% endif %}
+                      </a>
+                      <a class="btn btn-sm btn-primary" href="{% url 'dogs_record_vaccination' dog.pk %}">
+                        Record
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6">
+                    <div class="staff-admin-empty">No vaccination requests.</div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

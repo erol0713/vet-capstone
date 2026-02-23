@@ -8,6 +8,7 @@ class DogAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'status',
+        'registration_approval_status',
         'vaccination_status',
         'vaccination_request',
         'vaccination_schedule',
@@ -15,5 +16,11 @@ class DogAdmin(admin.ModelAdmin):
         'kennel_slot',
         'owner',
     )
-    list_filter = ('status', 'vaccination_status', 'vaccination_request', 'barangay')
+    list_filter = (
+        'status',
+        'registration_approval_status',
+        'vaccination_status',
+        'vaccination_request',
+        'barangay',
+    )
     search_fields = ('barangay', 'kennel_slot', 'owner__email', 'name')

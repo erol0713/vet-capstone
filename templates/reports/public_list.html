@@ -4,68 +4,161 @@
 {% block title %}Community Reports{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/pages/reports.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/reports-public-list.css' %}">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Public" title="Community Reports" subtitle="Browse reports and manage your own submissions." %}
-    <div class="action-bar justify-content-end mb-3">
-      <a class="btn btn-primary" href="{% url 'reports_public' %}">Report a Stray</a>
-    </div>
+  <section class="section-pad reports-public-page">
+    <div class="container reports-public-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Public" title="Community Reports" subtitle="Browse stray dog reports and manage your own submissions." %}
 
-    <div class="data-list">
-      {% for item in reports %}
-        <div class="data-list-item">
-          <div>
-            <div class="fw-semibold">Report #{{ item.id }} · {{ item.get_report_type_display }}</div>
-            <div class="data-list-meta mt-1">
-              {{ item.location }} · {{ item.created_at|date:"M d, Y" }}
-            </div>
-            <div class="mt-2">
-              <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
-            </div>
-          </div>
-          <div class="action-bar">
-            <button
-              class="btn btn-sm btn-outline-secondary"
-              type="button"
-              data-bs-toggle="modal"
-              data-bs-target="#reportViewModal"
-              data-report-id="{{ item.id }}"
-              data-report-type="{{ item.get_report_type_display }}"
-              data-report-status="{{ item.get_status_display }}"
-              data-report-location="{{ item.location }}"
-              data-report-submitted="{{ item.created_at|date:'M d, Y' }}"
-              data-report-description="{{ item.description|default_if_none:'' }}"
-              data-report-maps-url="{{ item.maps_url }}"
-              data-report-lat="{{ item.latitude }}"
-              data-report-lng="{{ item.longitude }}"
-              data-report-photo-url="{% if item.photo %}{{ item.photo.url }}{% endif %}"
-              data-report-photo-kind="{% if item.photo %}{% with filename=item.photo.name|lower %}{% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}video{% else %}image{% endif %}{% endwith %}{% endif %}"
-            >
-              View
-            </button>
-            {% if request.user.is_authenticated %}
-              {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' or item.reported_by == request.user %}
-              <form
-                method="post"
-                action="{% url 'reports_public_delete' item.id %}"
-                class="d-inline"
-                onsubmit="return confirm('Delete this report?');"
+      <div class="card-soft reports-filter-card">
+        <form method="get" class="reports-filter-form" novalidate>
+          <div class="reports-filter-grid">
+            <div>
+              <label class="form-label mb-1" for="reportSearch">Search</label>
+              <input
+                class="form-control form-control-sm"
+                id="reportSearch"
+                name="q"
+                type="text"
+                placeholder="Report ID, location, or description"
+                value="{{ filters.q }}"
               >
-                {% csrf_token %}
-                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
-              </form>
-              {% endif %}
+            </div>
+            <div>
+              <label class="form-label mb-1" for="reportTypeFilter">Type</label>
+              <select class="form-select form-select-sm" id="reportTypeFilter" name="report_type">
+                <option value="">All types</option>
+                {% for value, label in report_type_choices %}
+                  <option value="{{ value }}" {% if filters.report_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label mb-1" for="reportStatusFilter">Status</label>
+              <select class="form-select form-select-sm" id="reportStatusFilter" name="status">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}
+                  <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% if request.user.is_authenticated %}
+              <div class="reports-filter-mine">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    value="1"
+                    id="mineOnlyFilter"
+                    name="mine"
+                    {% if filters.mine %}checked{% endif %}
+                  >
+                  <label class="form-check-label" for="mineOnlyFilter">
+                    Only my reports
+                  </label>
+                </div>
+              </div>
             {% endif %}
           </div>
+          <div class="reports-filter-actions">
+            <button type="submit" class="btn btn-sm btn-primary">
+              <i class="bi bi-funnel"></i>
+              Apply Filters
+            </button>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports_public_list' %}">
+              Clear
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <div class="reports-public-toolbar">
+        <div class="reports-public-summary">
+          <span class="badge-soft">Showing {{ filtered_count }} of {{ total_reports }}</span>
         </div>
-      {% empty %}
-        {% include 'partials/empty_state.html' with title="No reports yet." message="Public reports will appear here as they are submitted." %}
-      {% endfor %}
+        <a class="btn btn-primary btn-sm" href="{% url 'reports_public' %}">
+          <i class="bi bi-plus-circle"></i>
+          Report a Stray
+        </a>
+      </div>
+
+      <div class="reports-public-list">
+        {% for item in reports %}
+          <article class="reports-public-item">
+            <div class="reports-public-main">
+              <div class="reports-public-head">
+                <h2 class="reports-public-title mb-0">Report #{{ item.id }}</h2>
+                <span class="badge-soft">{{ item.get_report_type_display }}</span>
+              </div>
+
+              <p class="reports-public-meta mb-2">
+                <i class="bi bi-geo-alt"></i>
+                {{ item.location }}
+                <span class="reports-public-dot" aria-hidden="true">|</span>
+                <i class="bi bi-calendar3"></i>
+                {{ item.created_at|date:"M d, Y" }}
+              </p>
+
+              <div class="reports-public-status">
+                {% if item.status == 'OPEN' %}
+                  <span class="status-pill status-pill--warning">{{ item.get_status_display }}</span>
+                {% elif item.status == 'IN_REVIEW' %}
+                  <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
+                {% elif item.status == 'RESOLVED' %}
+                  <span class="status-pill status-pill--success">{{ item.get_status_display }}</span>
+                {% else %}
+                  <span class="status-pill status-pill--muted">{{ item.get_status_display }}</span>
+                {% endif %}
+                {% if request.user.is_authenticated and item.reported_by == request.user %}
+                  <span class="badge-soft">Your report</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="reports-public-actions">
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#reportViewModal"
+                data-report-id="{{ item.id }}"
+                data-report-type="{{ item.get_report_type_display }}"
+                data-report-status="{{ item.get_status_display }}"
+                data-report-location="{{ item.location }}"
+                data-report-submitted="{{ item.created_at|date:'M d, Y' }}"
+                data-report-description="{{ item.description|default_if_none:'' }}"
+                data-report-maps-url="{{ item.maps_url }}"
+                data-report-lat="{{ item.latitude }}"
+                data-report-lng="{{ item.longitude }}"
+                data-report-photo-url="{% if item.photo %}{{ item.photo.url }}{% endif %}"
+                data-report-photo-kind="{% if item.photo %}{% with filename=item.photo.name|lower %}{% if '.mp4' in filename or '.webm' in filename or '.ogg' in filename or '.mov' in filename %}video{% else %}image{% endif %}{% endwith %}{% endif %}"
+              >
+                View
+              </button>
+
+              {% if request.user.is_authenticated %}
+                {% if request.user.role == 'ADMIN' or request.user.role == 'STAFF' or item.reported_by == request.user %}
+                  <form
+                    method="post"
+                    action="{% url 'reports_public_delete' item.id %}"
+                    class="d-inline"
+                    onsubmit="return confirm('Delete this report?');"
+                  >
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                  </form>
+                {% endif %}
+              {% endif %}
+            </div>
+          </article>
+        {% empty %}
+          {% include 'partials/empty_state.html' with title="No matching reports." message="Try adjusting filters or clear the search to view all reports." %}
+        {% endfor %}
+      </div>
     </div>
-  </div>
+  </section>
 
   <div class="modal fade" id="reportViewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">

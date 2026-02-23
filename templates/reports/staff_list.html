@@ -1,62 +1,89 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Reports Queue{% endblock %}
 
-{% block content %}
-  <div class="container">
-    {% include 'partials/page_header.html' with eyebrow="Staff" title="Reports Queue" subtitle="Staff/Admin review of stray and surrender reports." %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/staff-admin-modern.css' %}" />
+{% endblock %}
 
-    <div class="table-shell">
-      <div class="table-responsive">
-        <table class="table mb-0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Method</th>
-              <th>Location</th>
-              <th>Description</th>
-              <th>Reporter</th>
-              <th>Submitted</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in reports %}
+{% block content %}
+  <section class="section-pad staff-admin-page">
+    <div class="container staff-admin-wrap">
+      {% include 'partials/page_header.html' with eyebrow="Staff" title="Reports Queue" subtitle="Review, triage, and process submitted reports." %}
+
+      <div class="staff-admin-summary mb-3">
+        <div>
+          <h2 class="staff-admin-summary-title">Report Workflow</h2>
+          <p class="staff-admin-summary-text">Open each report to review details and update the status.</p>
+        </div>
+        <div class="staff-admin-chip-group">
+          <span class="staff-admin-chip"><i class="bi bi-clipboard-data"></i> {{ reports|length }} report{{ reports|length|pluralize }}</span>
+        </div>
+      </div>
+
+      <div class="staff-admin-table-card table-shell">
+        <div class="table-responsive">
+          <table class="table table-mobile-stack">
+            <thead>
               <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.get_report_type_display }}</td>
-                <td>{{ item.get_status_display }}</td>
-                <td>{{ item.get_location_method_display|default:"-" }}</td>
-                <td>{{ item.location }}</td>
-                <td class="text-muted small">
-                  {{ item.description|default:"-"|truncatechars:60 }}
-                </td>
-                <td>
-                  {% if item.contact_name %}
-                    {{ item.contact_name }}
-                  {% elif item.reported_by %}
-                    {{ item.reported_by.email }}
-                  {% else %}
-                    Anonymous
-                  {% endif %}
-                </td>
-                <td>{{ item.created_at|date:"M d, Y" }}</td>
-                <td class="text-end">
-                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports_staff_detail' item.id %}">
-                    View
-                  </a>
-                </td>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Method</th>
+                <th>Location</th>
+                <th>Description</th>
+                <th>Reporter</th>
+                <th>Submitted</th>
+                <th class="text-end">Actions</th>
               </tr>
-            {% empty %}
-              <tr>
-                <td colspan="9" class="text-center text-muted py-3">No reports yet.</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for item in reports %}
+                <tr>
+                  <td data-label="ID">{{ item.id }}</td>
+                  <td data-label="Type">{{ item.get_report_type_display }}</td>
+                  <td data-label="Status">
+                    {% if item.status == 'OPEN' %}
+                      <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'IN_REVIEW' %}
+                      <span class="status-pill status-pill--warning">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'RESOLVED' %}
+                      <span class="status-pill status-pill--success">{{ item.get_status_display }}</span>
+                    {% else %}
+                      <span class="status-pill status-pill--muted">{{ item.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td data-label="Method">{{ item.get_location_method_display|default:"-" }}</td>
+                  <td data-label="Location">{{ item.location }}</td>
+                  <td data-label="Description" class="text-muted small">{{ item.description|default:"-"|truncatechars:60 }}</td>
+                  <td data-label="Reporter">
+                    {% if item.contact_name %}
+                      {{ item.contact_name }}
+                    {% elif item.reported_by %}
+                      {{ item.reported_by.email }}
+                    {% else %}
+                      Anonymous
+                    {% endif %}
+                  </td>
+                  <td data-label="Submitted">{{ item.created_at|date:"M d, Y" }}</td>
+                  <td data-label="Actions" class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports_staff_detail' item.id %}">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9">
+                    <div class="staff-admin-empty">No reports yet.</div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 {% endblock %}

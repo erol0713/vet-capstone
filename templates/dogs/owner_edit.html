@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ dog.name|default:"Dog" }}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/dog-owner-detail.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container dog-shell">
+    <div class="page-header-centered">
+      <h1 class="page-title-centered">Edit Dog Profile</h1>
+      <p class="page-subtitle-centered">Update your registered dog details and vaccination information.</p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card-elevated">
+          <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.name.id_for_label }}">Name (optional)</label>
+                  {{ form.name }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.sex.id_for_label }}">Sex</label>
+                  {{ form.sex }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.age_estimate.id_for_label }}">Age Estimate</label>
+                  {{ form.age_estimate }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.color.id_for_label }}">Color</label>
+                  {{ form.color }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.barangay.id_for_label }}">Barangay</label>
+                  {{ form.barangay }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.vaccination_status.id_for_label }}">Vaccination Status</label>
+                  {{ form.vaccination_status }}
+                </div>
+                <div class="col-md-6" id="vaccinationProofGroup">
+                  <label class="form-label" for="{{ form.vaccination_proof.id_for_label }}">Vaccination Proof</label>
+                  {{ form.vaccination_proof }}
+                  <div class="form-text">Upload a photo or PDF proof.</div>
+                </div>
+                <div class="col-md-6" id="vaccinationRequestGroup">
+                  <div class="d-flex align-items-center gap-2 mt-4">
+                    {{ form.vaccination_request }}
+                    <label class="form-label mb-0" for="{{ form.vaccination_request.id_for_label }}">Request Vaccination Appointment</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ form.photo.id_for_label }}">Photo</label>
+                  {{ form.photo }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+                  {{ form.notes }}
+                </div>
+              </div>
+
+              <div class="owner-dog-toolbar mt-3">
+                <a class="btn owner-dog-btn owner-dog-btn--outline" href="{% url 'dogs_owner_detail' dog.pk %}">
+                  <i class="bi bi-arrow-left"></i>
+                  Back to Profile
+                </a>
+                <button class="btn owner-dog-btn owner-dog-btn--primary" type="submit">
+                  <i class="bi bi-check2"></i>
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const statusField = document.getElementById('id_vaccination_status');
+      const proofGroup = document.getElementById('vaccinationProofGroup');
+      const requestGroup = document.getElementById('vaccinationRequestGroup');
+      const requestField = document.getElementById('id_vaccination_request');
+
+      if (!statusField) return;
+
+      const syncVaccinationFields = () => {
+        const status = statusField.value;
+        if (status === 'VACCINATED') {
+          proofGroup?.classList.remove('d-none');
+          requestGroup?.classList.add('d-none');
+          if (requestField) requestField.checked = false;
+        } else if (status === 'UNVACCINATED') {
+          proofGroup?.classList.add('d-none');
+          requestGroup?.classList.remove('d-none');
+        } else {
+          proofGroup?.classList.add('d-none');
+          requestGroup?.classList.add('d-none');
+          if (requestField) requestField.checked = false;
+        }
+      };
+
+      statusField.addEventListener('change', syncVaccinationFields);
+      syncVaccinationFields();
+    });
+  </script>
+{% endblock %}

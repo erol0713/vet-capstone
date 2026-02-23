@@ -1,76 +1,178 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}My Requests{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/my-requests.css' %}" />
+{% endblock %}
+
 {% block content %}
-  <div class="container">
-    <h2 class="h4 mb-3">My Requests</h2>
-    <div class="row g-4">
-      <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Adoption Reservations</h3>
-            <ul class="list-group list-group-flush">
+  <section class="section-pad owner-requests-page">
+    <div class="container">
+      {% include 'partials/page_header.html' with eyebrow="Owner Portal" title="My Requests" subtitle="Manage your adoption reservations and reclaim applications." %}
+      {% with adoption_count=adoptions|length reclaim_count=reclaims|length %}
+
+      <div class="owner-requests-summary card-soft mb-3 mb-lg-4">
+        <div class="row g-3 align-items-center">
+          <div class="col-lg-8">
+            <h2 class="owner-requests-summary-title mb-2">Track your requests in one place</h2>
+            <p class="owner-requests-summary-text mb-2">
+              Check status updates, confirm eligible adoption requests, and review reclaim progress.
+            </p>
+            <div class="owner-requests-steps">
+              <span class="owner-requests-step"><strong>1.</strong> Submit request</span>
+              <span class="owner-requests-step"><strong>2.</strong> Wait for status updates</span>
+              <span class="owner-requests-step"><strong>3.</strong> Complete next action</span>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="owner-requests-stats">
+              <article class="owner-requests-stat">
+                <span>Adoption</span>
+                <strong>{{ adoption_count }}</strong>
+              </article>
+              <article class="owner-requests-stat">
+                <span>Reclaim</span>
+                <strong>{{ reclaim_count }}</strong>
+              </article>
+              <article class="owner-requests-stat">
+                <span>Total</span>
+                <strong>{{ adoption_count|add:reclaim_count }}</strong>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-xl-6">
+          <div class="request-panel card-elevated h-100 p-3 p-md-4">
+            <div class="owner-requests-panel-head">
+              <div>
+                <h2 class="h6 mb-1">Adoption Reservations</h2>
+                <p class="owner-requests-panel-note mb-0">Requests to adopt dogs from the pound.</p>
+              </div>
+              <span class="badge-soft">{{ adoption_count }}</span>
+            </div>
+            <div class="request-list">
               {% for item in adoptions %}
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span>
-                      {% if item.dog.name %}
-                        {{ item.dog.name }}
-                      {% else %}
-                        Dog #{{ item.dog_id }}
-                      {% endif %}
-                    </span>
-                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                <article class="request-item owner-request-item">
+                  <div class="owner-request-item-head">
+                    <div class="owner-request-dog">
+                      <a class="owner-request-thumb" href="{% url 'dogs_public_detail' item.dog_id %}" aria-label="View dog profile">
+                        {% if item.dog.photo %}
+                          <img src="{{ item.dog.photo.url }}" alt="{% if item.dog.name %}{{ item.dog.name }}{% else %}Dog {{ item.dog_id }}{% endif %}" loading="lazy" />
+                        {% else %}
+                          <span class="owner-request-thumb-placeholder"><i class="bi bi-image"></i></span>
+                        {% endif %}
+                      </a>
+                      <div>
+                        <h3 class="request-item-title mb-1">
+                          <a href="{% url 'dogs_public_detail' item.dog_id %}" class="text-decoration-none text-reset">
+                            {% if item.dog.name %}
+                              {{ item.dog.name }}
+                            {% else %}
+                              Dog #{{ item.dog_id }}
+                            {% endif %}
+                          </a>
+                        </h3>
+                        <div class="request-meta">Submitted {{ item.created_at|date:"M d, Y" }}</div>
+                        <div class="owner-request-submeta">Request #{{ item.pk }}</div>
+                      </div>
+                    </div>
+                    {% if item.status == 'APPROVED' %}
+                      <span class="status-pill status-pill--success">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'REJECTED' or item.status == 'CANCELLED' %}
+                      <span class="status-pill status-pill--danger">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'COMPLETED' %}
+                      <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
+                    {% else %}
+                      <span class="status-pill status-pill--warning">{{ item.get_status_display }}</span>
+                    {% endif %}
                   </div>
+
                   {% if item.appointment_schedule %}
-                    <div class="small text-muted mt-1">
+                    <div class="owner-request-note owner-request-note--info mt-2">
                       Appointment: {{ item.appointment_schedule|date:"M d, Y H:i" }}
                     </div>
                   {% endif %}
+
                   {% if item.confirmed_at %}
-                    <div class="small text-success mt-1">Confirmed</div>
+                    <div class="owner-request-note owner-request-note--success mt-2">Confirmed by requester</div>
                   {% elif item.eligibility_notified_at %}
-                    <form method="post" action="{% url 'adoption_confirm_reservation' item.pk %}" class="mt-2">
+                    <form method="post" action="{% url 'adoption_confirm_reservation' item.pk %}" class="owner-request-action mt-2">
                       {% csrf_token %}
-                      <button class="btn btn-sm btn-outline-primary" type="submit">
+                      <button class="btn btn-sm btn-primary" type="submit">
+                        <i class="bi bi-check2-circle"></i>
                         Confirm Adoption
                       </button>
                     </form>
                   {% else %}
-                    <div class="small text-muted mt-1">Waiting for reclaim window.</div>
+                    <div class="owner-request-note mt-2">Waiting for reclaim window to end.</div>
                   {% endif %}
-                </li>
+                </article>
               {% empty %}
-                <li class="list-group-item text-muted">No adoption requests yet.</li>
+                {% include 'partials/empty_state.html' with title="No adoption requests yet." message="Your adoption reservations will appear here." %}
               {% endfor %}
-            </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body p-4">
-            <h3 class="h6 mb-3">Reclaim Requests</h3>
-            <ul class="list-group list-group-flush">
+
+        <div class="col-xl-6">
+          <div class="request-panel card-elevated h-100 p-3 p-md-4">
+            <div class="owner-requests-panel-head">
+              <div>
+                <h2 class="h6 mb-1">Reclaim Requests</h2>
+                <p class="owner-requests-panel-note mb-0">Requests to reclaim impounded dogs.</p>
+              </div>
+              <span class="badge-soft">{{ reclaim_count }}</span>
+            </div>
+            <div class="request-list">
               {% for item in reclaims %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <span>
-                    {% if item.dog.name %}
-                      {{ item.dog.name }}
+                <article class="request-item owner-request-item">
+                  <div class="owner-request-item-head">
+                    <div class="owner-request-dog">
+                      <a class="owner-request-thumb" href="{% url 'dogs_public_detail' item.dog_id %}" aria-label="View dog profile">
+                        {% if item.dog.photo %}
+                          <img src="{{ item.dog.photo.url }}" alt="{% if item.dog.name %}{{ item.dog.name }}{% else %}Dog {{ item.dog_id }}{% endif %}" loading="lazy" />
+                        {% else %}
+                          <span class="owner-request-thumb-placeholder"><i class="bi bi-image"></i></span>
+                        {% endif %}
+                      </a>
+                      <div>
+                        <h3 class="request-item-title mb-1">
+                          <a href="{% url 'dogs_public_detail' item.dog_id %}" class="text-decoration-none text-reset">
+                            {% if item.dog.name %}
+                              {{ item.dog.name }}
+                            {% else %}
+                              Dog #{{ item.dog_id }}
+                            {% endif %}
+                          </a>
+                        </h3>
+                        <div class="request-meta">Submitted {{ item.created_at|date:"M d, Y" }}</div>
+                        <div class="owner-request-submeta">Request #{{ item.pk }}</div>
+                      </div>
+                    </div>
+                    {% if item.status == 'APPROVED' %}
+                      <span class="status-pill status-pill--success">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'REJECTED' %}
+                      <span class="status-pill status-pill--danger">{{ item.get_status_display }}</span>
+                    {% elif item.status == 'COMPLETED' %}
+                      <span class="status-pill status-pill--info">{{ item.get_status_display }}</span>
                     {% else %}
-                      Dog #{{ item.dog_id }}
+                      <span class="status-pill status-pill--warning">{{ item.get_status_display }}</span>
                     {% endif %}
-                  </span>
-                  <span class="badge bg-secondary">{{ item.get_status_display }}</span>
-                </li>
+                  </div>
+                </article>
               {% empty %}
-                <li class="list-group-item text-muted">No reclaim requests yet.</li>
+                {% include 'partials/empty_state.html' with title="No reclaim requests yet." message="Your reclaim applications will appear here." %}
               {% endfor %}
-            </ul>
+            </div>
           </div>
         </div>
       </div>
+      {% endwith %}
     </div>
-  </div>
+  </section>
 {% endblock %}

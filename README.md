@@ -36,10 +36,14 @@ python manage.py runserver
 - Penalty checklist includes a printable citation ticket with owner + violations.
 - Reclaim requests require an ownership proof upload for admin/staff review.
 - Adoption reservations for captured dogs notify after 3 days if unclaimed; users confirm, staff schedule appointments.
+- Staff can record completed dog vaccinations (vaccination date + expiration) or proof-confirmed expiration-only entries.
+- Run `python manage.py send_vaccine_notifications` regularly to send 3-day expiry reminders and expired vaccine prompts.
+- Owner-registered dogs are hidden from `My Dogs` until admin/staff approves vaccination compliance.
 
 ## Design System
 - Base CSS files:
   - `static/css/theme.css` (tokens, typography, Bootstrap variable overrides)
+  - `static/css/utilities.css` (reusable utility classes for spacing, clusters, filters, badges, and mobile table stack)
   - `static/css/components.css` (shared components: cards, chips, tables, status pills, steppers)
   - `static/css/layout.css` (page layout, hero, section spacing, mobile bottom nav)
 - Page-level overrides live in `static/css/pages/` (analytics, profile, reports, dogs, penalties, notifications, auth).

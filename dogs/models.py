@@ -16,6 +16,11 @@ class Dog(TimeStampedModel):
         RECLAIMED = 'RECLAIMED', 'Reclaimed'
         RELEASED = 'RELEASED', 'Released'
 
+    class RegistrationApprovalStatus(models.TextChoices):
+        PENDING = 'PENDING', 'Pending Review'
+        APPROVED = 'APPROVED', 'Approved'
+        REJECTED = 'REJECTED', 'Rejected'
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -44,6 +49,19 @@ class Dog(TimeStampedModel):
     vaccination_proof = models.FileField(upload_to='vaccination_proofs/', blank=True)
     vaccination_request = models.BooleanField(default=False)
     vaccination_schedule = models.DateTimeField(null=True, blank=True)
+    registration_approval_status = models.CharField(
+        max_length=20,
+        choices=RegistrationApprovalStatus.choices,
+        default=RegistrationApprovalStatus.APPROVED,
+    )
+    registration_reviewed_at = models.DateTimeField(null=True, blank=True)
+    registration_reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='dog_registration_reviews',
+    )
 
     def __str__(self) -> str:
         return f"Dog #{self.pk} - {self.get_status_display()}"
